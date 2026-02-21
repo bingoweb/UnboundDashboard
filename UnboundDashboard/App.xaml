@@ -1,0 +1,135 @@
+<Application x:Class="UnboundDashboard.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Dark"
+                                            PrimaryColor="Cyan"
+                                            SecondaryColor="DeepPurple" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!--              COLOR PALETTE                  -->
+            <!-- ═══════════════════════════════════════════ -->
+
+            <!-- Accent Colors -->
+            <SolidColorBrush x:Key="CyanAccent" Color="#22d3ee"/>
+            <SolidColorBrush x:Key="EmeraldAccent" Color="#34d399"/>
+            <SolidColorBrush x:Key="VioletAccent" Color="#a78bfa"/>
+            <SolidColorBrush x:Key="AmberAccent" Color="#fbbf24"/>
+            <SolidColorBrush x:Key="RoseAccent" Color="#fb7185"/>
+
+            <!-- Text -->
+            <SolidColorBrush x:Key="TextPrimary" Color="#f1f5f9"/>
+            <SolidColorBrush x:Key="TextSecondary" Color="#94a3b8"/>
+            <SolidColorBrush x:Key="TextMuted" Color="#64748b"/>
+            <SolidColorBrush x:Key="TextDim" Color="#475569"/>
+
+            <!-- Legacy aliases used by ViewModel Brush bindings -->
+            <SolidColorBrush x:Key="MatrixGreen" Color="#34d399"/>
+            <SolidColorBrush x:Key="MatrixGreenDark" Color="#059669"/>
+            <SolidColorBrush x:Key="OceanBlue" Color="#22d3ee"/>
+            <SolidColorBrush x:Key="PurpleMetric" Color="#a78bfa"/>
+            <SolidColorBrush x:Key="CyanMetric" Color="#22d3ee"/>
+            <SolidColorBrush x:Key="DarkBackground" Color="#050a18"/>
+            <SolidColorBrush x:Key="CardBackground" Color="#0c1225"/>
+            <SolidColorBrush x:Key="ShadowText" Color="#64748b"/>
+
+            <!-- Converters -->
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!--        ANIMATED PULSING STATUS DOT          -->
+            <!-- ═══════════════════════════════════════════ -->
+            <Storyboard x:Key="PulseAnimation" RepeatBehavior="Forever">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                 From="1.0" To="0.3"
+                                 Duration="0:0:1.2"
+                                 AutoReverse="True"/>
+            </Storyboard>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!--         CUSTOM PROGRESS BAR                 -->
+            <!-- ═══════════════════════════════════════════ -->
+            <Style x:Key="GlowProgressBar" TargetType="ProgressBar">
+                <Setter Property="Height" Value="10"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid>
+                                <!-- Track -->
+                                <Border Background="#0f1d32" CornerRadius="5"/>
+                                <!-- Fill -->
+                                <Border x:Name="PART_Track" CornerRadius="5"/>
+                                <Border x:Name="PART_Indicator"
+                                        HorizontalAlignment="Left"
+                                        CornerRadius="5">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#34d399" Offset="0"/>
+                                            <GradientStop Color="#22d3ee" Offset="0.5"/>
+                                            <GradientStop Color="#a78bfa" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="0" BlurRadius="12"
+                                                          Color="#22d3ee" Opacity="0.5"/>
+                                    </Border.Effect>
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!--            PILL BUTTON                      -->
+            <!-- ═══════════════════════════════════════════ -->
+            <Style x:Key="PillButton" TargetType="Button">
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Padding" Value="28,14"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="10"
+                                    Padding="{TemplateBinding Padding}"
+                                    BorderThickness="0">
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="0"
+                                                      BlurRadius="20"
+                                                      Color="#22d3ee"
+                                                      Opacity="0.25"/>
+                                </Border.Effect>
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.85"/>
+                                    <Setter TargetName="border" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.7"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

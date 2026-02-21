@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <AssemblyName>UnboundDashboard</AssemblyName>
+    <RootNamespace>UnboundDashboard</RootNamespace>
+    <Version>5.1.0</Version>
+    <Company>UNBOUND</Company>
+    <Product>DNS İzleme Merkezi</Product>
+    <Copyright>Copyright © 2024</Copyright>
+    <Description>UNBOUND DNS İzleme ve Yönetim Merkezi</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SSH Bağlantısı -->
+    <PackageReference Include="SSH.NET" Version="2024.2.0" />
+
+    <!-- Canlı Grafikler -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc2" />
+
+    <!-- Material Design UI -->
+    <PackageReference Include="MaterialDesignThemes" Version="5.0.0" />
+    <PackageReference Include="MaterialDesignColors" Version="3.0.0" />
+
+    <!-- MVVM Toolkit -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Config dosyası çıktıya kopyalansın -->
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

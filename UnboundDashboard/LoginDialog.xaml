@@ -1,0 +1,228 @@
+<Window x:Class="UnboundDashboard.LoginDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bağlantı Ayarları"
+        Width="520" Height="560"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        TextElement.Foreground="#f1f5f9"
+        TextElement.FontFamily="Segoe UI">
+
+    <Window.Background>
+        <SolidColorBrush Color="Transparent"/>
+    </Window.Background>
+
+    <!-- Outer shadow wrapper -->
+    <Border CornerRadius="20" Margin="20"
+            BorderThickness="1">
+        <Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#22d3ee" Offset="0"/>
+                <GradientStop Color="#1a2744" Offset="0.4"/>
+                <GradientStop Color="#a78bfa" Offset="0.8"/>
+                <GradientStop Color="#1a2744" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.BorderBrush>
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#080d1a" Offset="0"/>
+                <GradientStop Color="#0c1530" Offset="0.5"/>
+                <GradientStop Color="#0a0f22" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="0" BlurRadius="40" Color="#22d3ee" Opacity="0.15"/>
+        </Border.Effect>
+
+        <Grid Margin="32,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title bar with close -->
+            <Grid Grid.Row="0" Margin="0,0,0,20" MouseLeftButtonDown="OnDrag">
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock FontSize="20" FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#22d3ee" Offset="0"/>
+                                <GradientStop Color="#a78bfa" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                        🔐 SSH Bağlantısı
+                    </TextBlock>
+                    <TextBlock Text="Sunucu bilgilerini girin" FontSize="11" Foreground="#64748b" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Background="Transparent" Foreground="#64748b" BorderThickness="0"
+                        FontSize="16" Cursor="Hand" Click="OnCancel" Padding="4"/>
+            </Grid>
+
+            <!-- Hostname -->
+            <TextBlock Grid.Row="1" Text="SUNUCU ADRESİ" FontSize="10" FontWeight="Bold"
+                       Foreground="#64748b" Margin="0,0,0,6"/>
+            <TextBox Grid.Row="2" x:Name="TxtHostname"
+                     FontSize="14" FontFamily="Consolas"
+                     Padding="14,10" Margin="0,0,0,14"
+                     Background="#0a1020" Foreground="#f1f5f9"
+                     BorderBrush="#1e293b" BorderThickness="1"
+                     CaretBrush="#22d3ee">
+                <TextBox.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10"/>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+
+            <!-- Port + Username row -->
+            <Grid Grid.Row="3" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="PORT" FontSize="10" FontWeight="Bold"
+                               Foreground="#64748b" Margin="0,0,0,6"/>
+                    <TextBox x:Name="TxtPort"
+                             FontSize="14" FontFamily="Consolas"
+                             Padding="14,10"
+                             Background="#0a1020" Foreground="#f1f5f9"
+                             BorderBrush="#1e293b" BorderThickness="1"
+                             CaretBrush="#22d3ee">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="10"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="KULLANICI ADI" FontSize="10" FontWeight="Bold"
+                               Foreground="#64748b" Margin="0,0,0,6"/>
+                    <TextBox x:Name="TxtUsername"
+                             FontSize="14" FontFamily="Consolas"
+                             Padding="14,10"
+                             Background="#0a1020" Foreground="#f1f5f9"
+                             BorderBrush="#1e293b" BorderThickness="1"
+                             CaretBrush="#22d3ee">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="10"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                </StackPanel>
+            </Grid>
+
+            <!-- Password -->
+            <TextBlock Grid.Row="4" Text="ŞİFRE" FontSize="10" FontWeight="Bold"
+                       Foreground="#64748b" Margin="0,0,0,6"/>
+            <PasswordBox Grid.Row="5" x:Name="TxtPassword"
+                         FontSize="14" FontFamily="Consolas"
+                         Padding="14,10" Margin="0,0,0,14"
+                         Background="#0a1020" Foreground="#f1f5f9"
+                         BorderBrush="#1e293b" BorderThickness="1"
+                         CaretBrush="#22d3ee">
+                <PasswordBox.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10"/>
+                    </Style>
+                </PasswordBox.Resources>
+            </PasswordBox>
+
+            <!-- Remember checkbox -->
+            <CheckBox Grid.Row="6" x:Name="ChkRemember"
+                      Content="  Şifreyi hatırla (appsettings.json'a kaydet)"
+                      IsChecked="True" Foreground="#94a3b8" FontSize="11"
+                      Margin="0,0,0,16"/>
+
+            <!-- Status message -->
+            <Border Grid.Row="7" x:Name="StatusBorder" CornerRadius="10"
+                    Padding="14,8" Margin="0,0,0,14" Visibility="Collapsed"
+                    BorderThickness="1">
+                <TextBlock x:Name="TxtStatus" FontSize="11" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Spacer -->
+            <Grid Grid.Row="9"/>
+
+            <!-- Buttons -->
+            <Grid Grid.Row="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Test Connection -->
+                <Button Grid.Column="0" Content="🔍 Bağlantıyı Test Et"
+                        Click="OnTestConnection"
+                        FontWeight="Bold" FontSize="12" Foreground="White"
+                        Padding="0,14" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" CornerRadius="10" Padding="{TemplateBinding Padding}"
+                                    BorderBrush="#162d4a" BorderThickness="1">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#0c1a2e" Offset="0"/>
+                                        <GradientStop Color="#0f2240" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="#22d3ee"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Save & Connect -->
+                <Button Grid.Column="2" Content="⚡ Kaydet ve Bağlan"
+                        Click="OnSaveConnect"
+                        FontWeight="Bold" FontSize="12" Foreground="White"
+                        Padding="0,14" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#059669" Offset="0"/>
+                                        <GradientStop Color="#34d399" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#34d399" Opacity="0.3"/>
+                                </Border.Effect>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
