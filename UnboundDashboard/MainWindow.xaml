@@ -7,13 +7,17 @@
         xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
         Title="UNBOUND DNS MONITOR"
-        Height="900" Width="1480"
+        Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
         TextElement.Foreground="{StaticResource TextPrimary}"
-        TextElement.FontFamily="Segoe UI"
+        TextElement.FontFamily="Segoe UI, Tahoma, Arial, sans-serif"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        TextOptions.TextHintingMode="Fixed"
         WindowStyle="None"
         AllowsTransparency="True"
-        ResizeMode="CanResizeWithGrip">
+        ResizeMode="NoResize"
+        Icon="app.ico">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="80" 
@@ -49,6 +53,63 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Global TextBlock style for crispness and subtle shadow -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.6" Color="#03050a" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Minimalist Dark ScrollBar -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border CornerRadius="3" Background="#2a3b5a" Margin="2,0,0,0"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Professional SVG Icons -->
+        <!-- Server / Database (Warmup) -->
+        <Geometry x:Key="Icon_Server">M4 7C4 5.34315 7.58172 4 12 4C16.4183 4 20 5.34315 20 7M4 7C4 8.65685 7.58172 10 12 10C16.4183 10 20 8.65685 20 7M4 7V17C4 18.6569 7.58172 20 12 20C16.4183 20 20 18.6569 20 17V7M4 12C4 13.6569 7.58172 15 12 15C16.4183 15 20 13.6569 20 12</Geometry>
+        
+        <!-- Trash / Broom / Erase (Flush) -->
+        <Geometry x:Key="Icon_Trash">M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20</Geometry>
+        
+        <!-- Reload / Restart -->
+        <Geometry x:Key="Icon_Reload">M4 4V9H4.58152M19.9381 11C19.446 7.05369 16.0796 4 12 4C8.64262 4 5.76829 6.06817 4.58152 9M4.58152 9H9M20 20V15H19.4185M19.4185 15C18.2317 17.9318 15.3574 20 12 20C7.92038 20 4.55399 16.9463 4.06189 13M19.4185 15H15</Geometry>
+        
+        <!-- Lightning / SpeedTest -->
+        <Geometry x:Key="Icon_Lightning">M13 10V3L4 14H11V21L20 10H13Z</Geometry>
+        
+        <!-- Activity / Pulse (Response Time) -->
+        <Geometry x:Key="Icon_Pulse">M3 12H7L10 4L14 20L17 12H21</Geometry>
+        
+        <!-- Shield / Security -->
+        <Geometry x:Key="Icon_Shield">M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z</Geometry>
+        
+        <!-- Microchip / CPU -->
+        <Geometry x:Key="Icon_Cpu">M9 9H15V15H9V9ZM8 8V16H16V8H8ZM6 6H18V18H6V6ZM4 6V8H3V10H4V14H3V16H4V18C4 19.1046 4.89543 20 6 20H8V21H10V20H14V21H16V20H18C19.1046 20 20 19.1046 20 18V16H21V14H20V10H21V8H20V6C20 4.89543 19.1046 4 18 4H16V3H14V4H10V3H8V4H6C4.89543 4 4 4.89543 4 6Z</Geometry>
+
     </Window.Resources>
 
     <Window.Background>
@@ -108,8 +169,10 @@
         </Ellipse>
 
         <!-- ═══ MAIN CONTENT GRID ═══ -->
-        <Grid Margin="28">
-            <Grid.RowDefinitions>
+        <Viewbox Stretch="Uniform">
+            <Grid Width="1200" Height="800">
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -119,7 +182,7 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             <!--              CUSTOM TITLE BAR + HEADER                  -->
             <!-- ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="0" CornerRadius="16" Padding="24,14">
+            <Border Grid.Row="0" CornerRadius="16" Padding="16,10">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="#0c1225" Offset="0"/>
@@ -169,19 +232,13 @@
 
                     <!-- Center: Brand -->
                     <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock HorizontalAlignment="Center" FontSize="22" FontWeight="Bold">
-                            <TextBlock.Foreground>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#22d3ee" Offset="0"/>
-                                    <GradientStop Color="#a78bfa" Offset="1"/>
-                                </LinearGradientBrush>
-                            </TextBlock.Foreground>
+                        <TextBlock HorizontalAlignment="Center" FontSize="22" FontWeight="Bold" Foreground="#10b981">
                             U N B O U N D
                         </TextBlock>
-                        <TextBlock Text="D N S   M O N I T O R"
+                        <TextBlock Text="C Y B E R   T H R E A T   M O N I T O R"
                                    FontSize="8" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
-                                   Foreground="{StaticResource TextDim}"
+                                   Foreground="#6b7280"
                                    Margin="0,3,0,0"/>
                     </StackPanel>
 
@@ -224,245 +281,123 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             <!--                   METRIC CARDS ROW                      -->
             <!-- ═══════════════════════════════════════════════════════ -->
-            <UniformGrid Grid.Row="1" Rows="1" Columns="4" Margin="0,18,0,0">
+            <UniformGrid Grid.Row="1" Rows="1" Columns="4" Margin="0,12,0,0">
 
                 <!-- ◆ TOTAL QUERIES -->
-                <Border CornerRadius="16" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#22d3ee" Offset="0"/>
-                            <GradientStop Color="#0f1d32" Offset="0.5"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#142e20"/>
                     </Border.BorderBrush>
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#0d1f35" Offset="0"/>
-                            <GradientStop Color="#0a1525" Offset="1"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#08100c"/>
                     </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect ShadowDepth="0" BlurRadius="24" Color="#22d3ee" Opacity="0.15"/>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#10b981" Opacity="0.05"/>
                     </Border.Effect>
                     <Grid>
-                        <!-- Glowing top edge -->
-                        <Border Height="2" VerticalAlignment="Top">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#22d3ee" Offset="0.5"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <!-- Decorative inner orb -->
-                        <Ellipse Width="120" Height="120" VerticalAlignment="Top" HorizontalAlignment="Center"
-                                 Margin="0,-40,0,0" Opacity="0.06">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#22d3ee" Offset="0"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,28,20,20">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,18,12,12">
                             <TextBlock Text="{Binding TotalQueries}" FontSize="44" FontWeight="Bold"
-                                       HorizontalAlignment="Center">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#22d3ee" Offset="0"/>
-                                        <GradientStop Color="#67e8f9" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
+                                       HorizontalAlignment="Center" Foreground="#10b981">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#22d3ee" Opacity="0.4"/>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="8" Color="#10b981" Opacity="0.2"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                             <TextBlock Text="TOPLAM SORGU" FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"
+                                       Foreground="#6b7280" HorizontalAlignment="Center"
                                        Margin="0,6,0,0"/>
                             <TextBlock Text="Gönderilen toplam istek" FontSize="9"
-                                       Foreground="{StaticResource TextDim}" HorizontalAlignment="Center"
+                                       Foreground="#4b5563" HorizontalAlignment="Center"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
                 <!-- ◆ CACHE HIT -->
-                <Border CornerRadius="16" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#34d399" Offset="0"/>
-                            <GradientStop Color="#0f1d32" Offset="0.5"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#142e20"/>
                     </Border.BorderBrush>
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#0a1f1a" Offset="0"/>
-                            <GradientStop Color="#0a1525" Offset="1"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#08100c"/>
                     </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect ShadowDepth="0" BlurRadius="24" Color="#34d399" Opacity="0.15"/>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#10b981" Opacity="0.05"/>
                     </Border.Effect>
                     <Grid>
-                        <Border Height="2" VerticalAlignment="Top">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#34d399" Offset="0.5"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <Ellipse Width="120" Height="120" VerticalAlignment="Top" HorizontalAlignment="Center"
-                                 Margin="0,-40,0,0" Opacity="0.06">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#34d399" Offset="0"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,28,20,20">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,18,12,12">
                             <TextBlock Text="{Binding CacheHitPercent, StringFormat='{}{0:F0}%'}"
-                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#34d399" Offset="0"/>
-                                        <GradientStop Color="#6ee7b7" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
+                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#10b981">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#34d399" Opacity="0.4"/>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="8" Color="#10b981" Opacity="0.2"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Text="ÖNBELLEK" FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"
+                            <TextBlock Text="ÖNBELLEK YANITI" FontSize="10" FontWeight="Bold"
+                                       Foreground="#6b7280" HorizontalAlignment="Center"
                                        Margin="0,6,0,0"/>
                             <TextBlock Text="{Binding CacheHitsText}" FontSize="9"
-                                       Foreground="{StaticResource TextDim}" HorizontalAlignment="Center"
+                                       Foreground="#4b5563" HorizontalAlignment="Center"
                                        TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
                 <!-- ◆ RESPONSE TIME -->
-                <Border CornerRadius="16" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#a78bfa" Offset="0"/>
-                            <GradientStop Color="#0f1d32" Offset="0.5"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#142e20"/>
                     </Border.BorderBrush>
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#14102a" Offset="0"/>
-                            <GradientStop Color="#0a1525" Offset="1"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#08100c"/>
                     </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect ShadowDepth="0" BlurRadius="24" Color="#a78bfa" Opacity="0.15"/>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#10b981" Opacity="0.05"/>
                     </Border.Effect>
                     <Grid>
-                        <Border Height="2" VerticalAlignment="Top">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#a78bfa" Offset="0.5"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <Ellipse Width="120" Height="120" VerticalAlignment="Top" HorizontalAlignment="Center"
-                                 Margin="0,-40,0,0" Opacity="0.06">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#a78bfa" Offset="0"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,28,20,20">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,18,12,12">
                             <TextBlock Text="{Binding ResponseTime, StringFormat='{}{0:F0}ms'}"
-                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#a78bfa" Offset="0"/>
-                                        <GradientStop Color="#c4b5fd" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
+                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#10b981">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#a78bfa" Opacity="0.4"/>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="8" Color="#10b981" Opacity="0.2"/>
                                 </TextBlock.Effect>
                             </TextBlock>
                             <TextBlock Text="CEVAP SÜRESİ" FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"
+                                       Foreground="#6b7280" HorizontalAlignment="Center"
                                        Margin="0,6,0,0"/>
                             <TextBlock Text="{Binding ResponseTimeText}" FontSize="9"
-                                       Foreground="{StaticResource TextDim}" HorizontalAlignment="Center"
+                                       Foreground="#4b5563" HorizontalAlignment="Center"
                                        TextWrapping="Wrap" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
                 <!-- ◆ QPS -->
-                <Border CornerRadius="16" Padding="0"
+                <Border CornerRadius="2" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#fbbf24" Offset="0"/>
-                            <GradientStop Color="#0f1d32" Offset="0.5"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#142e20"/>
                     </Border.BorderBrush>
                     <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#1a1708" Offset="0"/>
-                            <GradientStop Color="#0a1525" Offset="1"/>
-                        </LinearGradientBrush>
+                        <SolidColorBrush Color="#08100c"/>
                     </Border.Background>
                     <Border.Effect>
-                        <DropShadowEffect ShadowDepth="0" BlurRadius="24" Color="#fbbf24" Opacity="0.12"/>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="10" Color="#10b981" Opacity="0.05"/>
                     </Border.Effect>
                     <Grid>
-                        <Border Height="2" VerticalAlignment="Top">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="Transparent" Offset="0"/>
-                                    <GradientStop Color="#fbbf24" Offset="0.5"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                        <Ellipse Width="120" Height="120" VerticalAlignment="Top" HorizontalAlignment="Center"
-                                 Margin="0,-40,0,0" Opacity="0.06">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#fbbf24" Offset="0"/>
-                                    <GradientStop Color="Transparent" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,28,20,20">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,18,12,12">
                             <TextBlock Text="{Binding QPS, StringFormat='{}{0:F1}'}"
-                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center">
-                                <TextBlock.Foreground>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                        <GradientStop Color="#fbbf24" Offset="0"/>
-                                        <GradientStop Color="#fde68a" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </TextBlock.Foreground>
+                                       FontSize="44" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#10b981">
                                 <TextBlock.Effect>
-                                    <DropShadowEffect ShadowDepth="0" BlurRadius="16" Color="#fbbf24" Opacity="0.4"/>
+                                    <DropShadowEffect ShadowDepth="0" BlurRadius="8" Color="#10b981" Opacity="0.2"/>
                                 </TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Text="SORGU / SANİYE" FontSize="10" FontWeight="Bold"
-                                       Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"
+                            <TextBlock Text="TARAMA HIZI (QPS)" FontSize="10" FontWeight="Bold"
+                                       Foreground="#6b7280" HorizontalAlignment="Center"
                                        Margin="0,6,0,0"/>
-                            <TextBlock Text="Gerçek zamanlı QPS" FontSize="9"
-                                       Foreground="{StaticResource TextDim}" HorizontalAlignment="Center"
+                            <TextBlock Text="Gerçek zamanlı tarama hızı" FontSize="9"
+                                       Foreground="#4b5563" HorizontalAlignment="Center"
                                        Margin="0,3,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -472,7 +407,7 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             <!--                    MAIN CONTENT                         -->
             <!-- ═══════════════════════════════════════════════════════ -->
-            <Grid Grid.Row="2" Margin="0,18,0,0">
+            <Grid Grid.Row="2" Margin="0,12,0,0" Grid.IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="18"/>
@@ -482,19 +417,16 @@
                 <!-- ═══ LEFT COLUMN ═══ -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="TopPanels"/>
+                        <RowDefinition Height="12"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="14"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- CACHE PANEL -->
-                    <Border Grid.Row="0" CornerRadius="16" Padding="24,20"
-                            BorderBrush="#162d3a" BorderThickness="1">
+                    <Border Grid.Row="0" CornerRadius="2" Padding="16,14"
+                            BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0c1225" Offset="0"/>
-                                <GradientStop Color="#0a1a20" Offset="1"/>
-                            </LinearGradientBrush>
+                            <SolidColorBrush Color="#08100c"/>
                         </Border.Background>
                         <Grid>
                             <Grid.RowDefinitions>
@@ -505,47 +437,38 @@
                             </Grid.RowDefinitions>
 
                             <!-- Header -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                                <Border CornerRadius="8" Padding="8,5" Margin="0,0,10,0"
-                                        BorderBrush="#1a3d2e" BorderThickness="1">
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                        BorderBrush="#142e20" BorderThickness="1">
                                     <Border.Background>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                            <GradientStop Color="#0a2118" Offset="0"/>
-                                            <GradientStop Color="#0e2a1f" Offset="1"/>
-                                        </LinearGradientBrush>
+                                        <SolidColorBrush Color="#0a120e"/>
                                     </Border.Background>
-                                    <TextBlock Text="✦" FontSize="12" Foreground="{StaticResource EmeraldAccent}"/>
+                                    <Path Data="{StaticResource Icon_Server}" Fill="#10b981" Width="14" Height="14" Stretch="Uniform"/>
                                 </Border>
                                 <TextBlock Text="ÖNBELLEK DURUMU" FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource EmeraldAccent}" VerticalAlignment="Center"/>
+                                           Foreground="#10b981" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Big progress bar -->
-                            <Grid Grid.Row="1" Margin="0,0,0,14">
+                            <Grid Grid.Row="1" Margin="0,0,0,8">
                                 <ProgressBar Value="{Binding CacheHitPercent, Mode=OneWay}"
-                                             Style="{StaticResource GlowProgressBar}" Height="28"/>
+                                             Style="{StaticResource GlowProgressBar}" Height="20"/>
                                 <TextBlock Text="{Binding CacheHitPercent, StringFormat='{}{0:F0}% önbellekte'}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontSize="12" FontWeight="Bold" Foreground="White">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect ShadowDepth="0" BlurRadius="6" Color="Black" Opacity="0.6"/>
-                                    </TextBlock.Effect>
+                                           FontSize="12" FontWeight="Bold" Foreground="#050a08">
                                 </TextBlock>
                             </Grid>
 
                             <!-- Stats -->
                             <TextBlock Grid.Row="2" Text="{Binding CacheStats}"
-                                       TextWrapping="Wrap" LineHeight="24" FontSize="12"
-                                       Foreground="{StaticResource TextSecondary}" Margin="0,4,0,8"/>
+                                       TextWrapping="Wrap" LineHeight="22" FontSize="12"
+                                       Foreground="#6b7280" Margin="0,2,0,6"/>
 
                             <!-- Status message -->
-                            <Border Grid.Row="3" CornerRadius="10" Padding="14,10" VerticalAlignment="Bottom"
-                                    BorderBrush="#1a3d2e" BorderThickness="1">
+                            <Border Grid.Row="3" CornerRadius="2" Padding="14,10" VerticalAlignment="Bottom"
+                                    BorderBrush="#142e20" BorderThickness="1">
                                 <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#081a12" Offset="0"/>
-                                        <GradientStop Color="#0a2118" Offset="1"/>
-                                    </LinearGradientBrush>
+                                    <SolidColorBrush Color="#0a120e"/>
                                 </Border.Background>
                                 <TextBlock Text="{Binding CacheStatusMessage}" TextWrapping="Wrap"
                                            FontWeight="SemiBold" FontSize="11"
@@ -554,65 +477,76 @@
                         </Grid>
                     </Border>
 
-                    <!-- QPS CHART -->
-                    <Border Grid.Row="2" CornerRadius="16" Padding="24,16"
-                            BorderBrush="#162d3a" BorderThickness="1">
+                    <!-- MATRIX TERMINAL FEED -->
+                    <Border Grid.Row="2" CornerRadius="2" Padding="16,12"
+                            BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0c1225" Offset="0"/>
-                                <GradientStop Color="#0d1530" Offset="1"/>
-                            </LinearGradientBrush>
+                            <SolidColorBrush Color="#08100c"/>
                         </Border.Background>
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <Border CornerRadius="8" Padding="8,5" Margin="0,0,10,0"
-                                        BorderBrush="#162d4a" BorderThickness="1" Background="#0c1a2e">
-                                    <TextBlock Text="◈" FontSize="12" Foreground="{StaticResource CyanAccent}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                        BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
+                                    <Path Data="{StaticResource Icon_Pulse}" Fill="#10b981" Width="14" Height="14" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="SORGU HIZI" FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource CyanAccent}" VerticalAlignment="Center"/>
-                                <TextBlock Text="  Son 60sn" FontSize="10" Foreground="{StaticResource TextDim}"
+                                <TextBlock Text="SİBER İSTİHBARAT TERMİNALİ" FontSize="14" FontWeight="Bold"
+                                           Foreground="#10b981" VerticalAlignment="Center"/>
+                                <TextBlock Text="  Canlı Akış (Unbound Engine)" FontSize="10" Foreground="#6b7280"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
-                            <lvc:CartesianChart Series="{Binding QPSSeries}" 
-                                                XAxes="{Binding XAxes}"
-                                                YAxes="{Binding YAxes}"
-                                                Height="130" Background="Transparent"/>
-                        </StackPanel>
+                            <!-- MATRIX TERMINAL FEED -->
+                            <Border Grid.Row="1" Background="#050a08" CornerRadius="2" BorderThickness="1" BorderBrush="#142e20" Margin="0,4,0,0" ClipToBounds="True">
+                                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsControl ItemsSource="{Binding TerminalLogs}" Margin="12,12,12,12">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Text}" FontFamily="Consolas, Courier New, monospace" 
+                                                           FontSize="13" FontWeight="SemiBold" Foreground="{Binding Color}" LineHeight="18" TextWrapping="Wrap" Margin="0,0,0,4">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect ShadowDepth="0" BlurRadius="4" Color="{Binding Color.Color}" Opacity="0.5"/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
                     </Border>
                 </Grid>
 
                 <!-- ═══ RIGHT COLUMN ═══ -->
                 <Grid Grid.Column="2">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="TopPanels"/>
+                        <RowDefinition Height="12"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="14"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- SYSTEM PANEL -->
-                    <Border Grid.Row="0" CornerRadius="16" Padding="24,20"
-                            BorderBrush="#162d3a" BorderThickness="1">
+                    <Border Grid.Row="0" CornerRadius="2" Padding="16,14"
+                            BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0c1225" Offset="0"/>
-                                <GradientStop Color="#10152a" Offset="1"/>
-                            </LinearGradientBrush>
+                            <SolidColorBrush Color="#08100c"/>
                         </Border.Background>
                         <StackPanel>
                             <!-- Header -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                                <Border CornerRadius="8" Padding="8,5" Margin="0,0,10,0"
-                                        BorderBrush="#162d4a" BorderThickness="1" Background="#0c1a2e">
-                                    <TextBlock Text="⬡" FontSize="12" Foreground="{StaticResource CyanAccent}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                        BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
+                                    <Path Data="{StaticResource Icon_Cpu}" Fill="#10b981" Width="16" Height="16" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="SİSTEM" FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource CyanAccent}" VerticalAlignment="Center"/>
+                                <TextBlock Text="SİSTEM AKTİVİTESİ" FontSize="14" FontWeight="Bold"
+                                           Foreground="#10b981" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- CPU -->
-                            <Border Background="#0a1020" CornerRadius="10" Padding="16,12" Margin="0,0,0,8"
-                                    BorderBrush="#141e35" BorderThickness="1">
+                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                                    BorderBrush="#142e20" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"/>
@@ -620,7 +554,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="İşlemci" FontSize="12"
-                                               Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                               Foreground="#6b7280" VerticalAlignment="Center"/>
                                     <ProgressBar Grid.Column="1" Value="{Binding CpuUsage, Mode=OneWay}"
                                                  Style="{StaticResource GlowProgressBar}" Margin="0,0,14,0"/>
                                     <TextBlock Grid.Column="2" Text="{Binding CpuUsage, StringFormat='{}{0:F0}%'}"
@@ -630,8 +564,8 @@
                             </Border>
 
                             <!-- RAM -->
-                            <Border Background="#0a1020" CornerRadius="10" Padding="16,12" Margin="0,0,0,8"
-                                    BorderBrush="#141e35" BorderThickness="1">
+                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                                    BorderBrush="#142e20" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="80"/>
@@ -639,7 +573,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Bellek" FontSize="12"
-                                               Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                               Foreground="#6b7280" VerticalAlignment="Center"/>
                                     <ProgressBar Grid.Column="1" Value="{Binding RamPercent, Mode=OneWay}"
                                                  Style="{StaticResource GlowProgressBar}" Margin="0,0,14,0"/>
                                     <TextBlock Grid.Column="2" Text="{Binding RamText}" FontSize="11"
@@ -649,73 +583,63 @@
                             </Border>
 
                             <!-- Disk -->
-                            <Border Background="#0a1020" CornerRadius="10" Padding="16,12" Margin="0,0,0,16"
-                                    BorderBrush="#141e35" BorderThickness="1">
-                                <TextBlock Text="{Binding DiskText, StringFormat='💾 Disk: {0}'}"
-                                           FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                                    BorderBrush="#142e20" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource Icon_Server}" Fill="#6b7280" Width="12" Height="12" Margin="0,0,8,0" Stretch="Uniform" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding DiskText, StringFormat='Disk Analizi: {0}'}"
+                                               FontSize="12" Foreground="#6b7280" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Border>
-
-                            <!-- Security -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border CornerRadius="8" Padding="8,5" Margin="0,0,10,0"
-                                        BorderBrush="#2a1f45" BorderThickness="1" Background="#14102a">
-                                    <TextBlock Text="🛡" FontSize="12"/>
-                                </Border>
-                                <TextBlock Text="GÜVENLİK" FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource VioletAccent}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock Text="{Binding SecurityStatus}" TextWrapping="Wrap" FontSize="11"
-                                       LineHeight="22" Foreground="{StaticResource TextSecondary}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- QUERY TYPES -->
-                    <Border Grid.Row="2" CornerRadius="16" Padding="24,16"
-                            BorderBrush="#2a1f45" BorderThickness="1">
+                    <Border Grid.Row="2" CornerRadius="2" Padding="16,12"
+                            BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="#0c1225" Offset="0"/>
-                                <GradientStop Color="#14102a" Offset="1"/>
-                            </LinearGradientBrush>
+                            <SolidColorBrush Color="#08100c"/>
                         </Border.Background>
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border CornerRadius="8" Padding="8,5" Margin="0,0,10,0"
-                                        BorderBrush="#2a1f45" BorderThickness="1" Background="#14102a">
-                                    <TextBlock Text="◉" FontSize="12" Foreground="{StaticResource VioletAccent}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                        BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
+                                    <Path Data="{StaticResource Icon_Server}" Fill="#10b981" Width="14" Height="14" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="SORGU TÜRLERİ" FontSize="14" FontWeight="Bold"
-                                           Foreground="{StaticResource VioletAccent}" VerticalAlignment="Center"/>
+                                <TextBlock Text="PROTOKOL DAĞILIMI" FontSize="14" FontWeight="Bold"
+                                           Foreground="#10b981" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <ItemsControl ItemsSource="{Binding QueryTypes}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#0a1020" CornerRadius="8" Padding="14,8" Margin="0,0,0,5"
-                                                BorderBrush="#141e35" BorderThickness="1">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11"
-                                                           Foreground="{StaticResource TextSecondary}"/>
-                                                <Border Grid.Column="1" CornerRadius="6" Padding="10,3"
-                                                        BorderBrush="#1a3d2e" BorderThickness="1">
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                            <GradientStop Color="#081a12" Offset="0"/>
-                                                            <GradientStop Color="#0a2118" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <TextBlock Text="{Binding Count}" FontSize="11"
-                                                               Foreground="{StaticResource EmeraldAccent}" FontWeight="Bold"/>
-                                                </Border>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
+                            
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly" Margin="0,0,-6,0" Padding="0,0,6,0">
+                                <ItemsControl ItemsSource="{Binding QueryTypes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#0a120e" CornerRadius="2" Padding="14,5" Margin="0,0,0,4"
+                                                    BorderBrush="#142e20" BorderThickness="1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11"
+                                                               Foreground="#6b7280" VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="1" CornerRadius="2" Padding="10,3"
+                                                            BorderBrush="#142e20" BorderThickness="1" Background="#08100c">
+                                                        <TextBlock Text="{Binding Count}" FontSize="11"
+                                                                   Foreground="#10b981" FontWeight="Bold"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
                 </Grid>
             </Grid>
@@ -723,55 +647,50 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             <!--                  ACTION BUTTONS                         -->
             <!-- ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="3" CornerRadius="16" Padding="18,14" Margin="0,18,0,0"
-                    BorderBrush="#162d3a" BorderThickness="1">
+            <Border Grid.Row="3" CornerRadius="2" Padding="14,10" Margin="0,12,0,0"
+                    BorderBrush="#142e20" BorderThickness="1">
                 <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#0c1225" Offset="0"/>
-                        <GradientStop Color="#0d1530" Offset="0.5"/>
-                        <GradientStop Color="#0c1225" Offset="1"/>
-                    </LinearGradientBrush>
+                    <SolidColorBrush Color="#08100c"/>
                 </Border.Background>
                 <UniformGrid Rows="1" Columns="4">
-                    <Button Content="⚡ ÖN ISITMA" Command="{Binding WarmupCommand}"
-                            Style="{StaticResource PillButton}" Margin="0,0,10,0">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#059669" Offset="0"/>
-                                <GradientStop Color="#34d399" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
+                    <Button Command="{Binding WarmupCommand}"
+                            Style="{StaticResource PillButton}" Margin="0,0,10,0"
+                            ToolTip="Sık ziyaret edilen siteleri hafızaya yükleyerek hızlandırır"
+                            Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource Icon_Server}" Fill="#10b981" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
+                            <TextBlock Text="ÖNBELLEK YÜKLE" FontWeight="Bold" Foreground="#10b981"/>
+                        </StackPanel>
                     </Button>
-                    <Button Content="🗑 TEMİZLEME" Command="{Binding FlushCommand}"
-                            Style="{StaticResource PillButton}" Margin="0,0,10,0">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#d97706" Offset="0"/>
-                                <GradientStop Color="#fbbf24" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
+                    <Button Command="{Binding FlushCommand}"
+                            Style="{StaticResource PillButton}" Margin="0,0,10,0"
+                            Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource Icon_Trash}" Fill="#f59e0b" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
+                            <TextBlock Text="TEMİZLİK" FontWeight="Bold" Foreground="#f59e0b"/>
+                        </StackPanel>
                     </Button>
-                    <Button Content="🔄 YENİDEN BAŞLAT" Command="{Binding RestartCommand}"
-                            Style="{StaticResource PillButton}" Margin="0,0,10,0">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#0891b2" Offset="0"/>
-                                <GradientStop Color="#22d3ee" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
+                    <Button Command="{Binding RestartCommand}"
+                            Style="{StaticResource PillButton}" Margin="0,0,10,0"
+                            Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource Icon_Reload}" Stroke="#10b981" StrokeThickness="1.5" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
+                            <TextBlock Text="YENİDEN BAŞLAT" FontWeight="Bold" Foreground="#10b981"/>
+                        </StackPanel>
                     </Button>
-                    <Button Content="🚀 HIZ TESTİ" Command="{Binding SpeedTestCommand}"
-                            Style="{StaticResource PillButton}">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#7c3aed" Offset="0"/>
-                                <GradientStop Color="#a78bfa" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
+                    <Button Command="{Binding SpeedTestCommand}"
+                            Style="{StaticResource PillButton}"
+                            Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource Icon_Lightning}" Fill="#10b981" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
+                            <TextBlock Text="HIZ TESTİ" FontWeight="Bold" Foreground="#10b981"/>
+                        </StackPanel>
                     </Button>
                 </UniformGrid>
             </Border>
-        </Grid>
+                </Grid>
+            </Grid>
+        </Viewbox>
         </Grid>
     </Border>
 </Window>
