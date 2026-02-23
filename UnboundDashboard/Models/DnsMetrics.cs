@@ -12,6 +12,8 @@ namespace UnboundDashboard.Models
         public string Status { get; set; } = "?";
         public string Uptime { get; set; } = "—";
         public int UptimeSeconds { get; set; }
+        public string ServerOS { get; set; } = "—";
+        public string UnboundVersion { get; set; } = "—";
 
         // System Resources
         public double CpuUsage { get; set; }
@@ -37,6 +39,9 @@ namespace UnboundDashboard.Models
 
         // Query Types
         public Dictionary<string, long> QueryTypes { get; set; } = new();
+
+        // Raw Terminal Feed for Matrix UI
+        public List<string> RawTerminalLines { get; set; } = new();
 
         // Historical Data for Charts
         public System.Collections.ObjectModel.ObservableCollection<double> QpsHistory { get; set; } = new();
