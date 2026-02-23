@@ -64,6 +64,12 @@ namespace UnboundDashboard.ViewModels
         private string _clientIp = "Taranıyor...";
         private readonly DateTime _appStartTime = DateTime.Now;
 
+        // Previous Values for Diff Calculation
+        private long _prevTotalQueries = -1;
+        private long _prevCacheHits = -1;
+        private long _prevCacheMisses = -1;
+        private double _prevCacheHitPercent = -1;
+
         private const int MaxHistorySize = 60; // Son 60 saniye
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -184,7 +190,7 @@ namespace UnboundDashboard.ViewModels
             // Typewriter Timer (Fast ticking for matrix effect)
             _typewriterTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(20) // Faster: 20ms per character for live data
+                Interval = TimeSpan.FromMilliseconds(120) // Much slower for readability as requested
             };
             _typewriterTimer.Tick += TypewriterTimer_Tick;
 
@@ -362,14 +368,53 @@ namespace UnboundDashboard.ViewModels
                     _typewriterQueue.Enqueue(("", _emeraldBrush));
                     _typewriterQueue.Enqueue(($"[AKTARIM] SSH Telemetri Verileri Güvenle Güncellendi. (Latency: 1ms)", _emeraldBrush));
 
+                    // Calculate and Enqueue Diffs (Change from last update)
+                    if (_prevTotalQueries != -1) // Skip first run
+                    {
+                        long diffTotal = newMetrics.TotalQueries - _prevTotalQueries;
+                        long diffHits = newMetrics.CacheHits - _prevCacheHits;
+                        long diffMisses = newMetrics.CacheMisses - _prevCacheMisses;
+                        double diffPercent = newMetrics.CacheHitPercent - _prevCacheHitPercent;
+
+                        if (diffTotal > 0)
+                        {
+                            string diffMsg = $"[DEĞİŞİM] Toplam: {newMetrics.TotalQueries} (+{diffTotal}) | " +
+                                             $"Önbellek: {newMetrics.CacheHits} (+{diffHits}) | " +
+                                             $"Sunucu: {newMetrics.CacheMisses} (+{diffMisses})";
+
+                            // Add percent change only if significant
+                            if (Math.Abs(diffPercent) > 0.1)
+                            {
+                                string sign = diffPercent > 0 ? "+" : "";
+                                diffMsg += $" | Hit%: {newMetrics.CacheHitPercent:F1}% ({sign}{diffPercent:F1}%)";
+                            }
+
+                            _typewriterQueue.Enqueue((diffMsg, _orangeBrush));
+                        }
+                    }
+
+                    // Store current values for next comparison
+                    _prevTotalQueries = newMetrics.TotalQueries;
+                    _prevCacheHits = newMetrics.CacheHits;
+                    _prevCacheMisses = newMetrics.CacheMisses;
+                    _prevCacheHitPercent = newMetrics.CacheHitPercent;
+
                     // Process Live Real-Time Queries (Priority)
+                    // Queue Control: If typing is too slow, clear old backlog to show FRESH data
+                    if (_typewriterQueue.Count > 2)
+                    {
+                        _typewriterQueue.Clear();
+                        _typewriterQueue.Enqueue(("[AKTARIM] Arabellek Temizlendi - Canlı Veri Akışı Bekleniyor...", _cyanBrush));
+                    }
+
                     bool hasLiveTraffic = false;
                     if (newMetrics.LiveQueries != null && newMetrics.LiveQueries.Count > 0)
                     {
                         // Regex to parse tcpdump output: "IP 192.168.1.5.1234 > 1.1.1.1.53: 12345+ A? google.com."
                         var ipv4Regex = new Regex(@"IP\s+(?<src>[\d\.]+)\.(\d+)\s+>\s+.*53:.*?(?<type>[A-Z0-9]+)\?\s+(?<domain>\S+)", RegexOptions.Compiled);
 
-                        foreach (var queryLine in newMetrics.LiveQueries.Take(5)) // Take max 5 to prevent queue flooding
+                        // Only take 2 lines max per update cycle to match slow typing speed (120ms/char)
+                        foreach (var queryLine in newMetrics.LiveQueries.Take(2))
                         {
                             var match = ipv4Regex.Match(queryLine);
                             if (match.Success)
