@@ -1,0 +1,138 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v2.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore UnboundDashboard/UnboundDashboard.csproj
+
+      - name: Build and Publish (Single-File EXE)
+        run: |
+          dotnet publish UnboundDashboard/UnboundDashboard.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true `
+            -p:Version=${{ github.event.inputs.version }} `
+            -o ./publish
+
+      - name: Rename executable with version
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          Move-Item -Path "./publish/UnboundDashboard.exe" -Destination "./publish/UnboundDashboard-$version-win-x64.exe"
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          $notes = @"
+          # 🚀 UnboundDashboard $version
+
+          ## 📦 İndirme
+
+          **Windows x64 (Tek Dosya - Tavsiye Edilen)**
+          - UnboundDashboard-$version-win-x64.exe (~25-30 MB)
+          - Tüm bağımlılıklar dahil, kurulum gerektirmez
+          - .NET Runtime yüklemenize gerek yok
+
+          ## 📋 Özellikler
+
+          - ✅ SSH üzerinden Unbound DNS sunucu metrikleri
+          - 📊 Gerçek zamanlı QPS (Queries Per Second) grafikleri
+          - 💾 Cache hit rate ve performans izleme
+          - 🖥️ CPU/RAM kullanım takibi
+          - 🎨 Modern tactical military UI tasarımı
+          - 📚 Eğitici DNS terminal bilgileri
+
+          ## 🔧 Kullanım
+
+          1. **UnboundDashboard-$version-win-x64.exe** dosyasını indirin
+          2. Çalıştırın (herhangi bir kurulum gerekmiyor)
+          3. SSH bağlantı bilgilerinizi girin
+          4. Dashboard'u kullanmaya başlayın
+
+          ## ⚙️ Sistem Gereksinimleri
+
+          - **OS**: Windows 10/11 (x64)
+          - **RAM**: Minimum 100 MB
+          - **Disk**: 50 MB boş alan
+          - **Network**: SSH erişimi olan Unbound DNS sunucusu
+
+          ## 🔒 Güvenlik
+
+          - SSH bağlantı bilgileri ``appsettings.json`` dosyasında saklanır
+          - Dosya kullanıcı dizininde güvenli şekilde tutulur
+          - Plain text şifre depolanmaz (encryption önerilir)
+
+          ## 📝 Değişiklikler
+
+          Bu sürümdeki güncellemeler için [README.md](https://github.com/bingoweb/UnboundDashboard#10-changelog-ve-teknik-i̇yileştirmeler) dosyasına bakınız.
+
+          ## 🐛 Sorun Bildirimi
+
+          Hata raporları ve öneriler için [GitHub Issues](https://github.com/bingoweb/UnboundDashboard/issues) kullanabilirsiniz.
+
+          ---
+
+          **SHA256 Checksum**: Dosya bütünlüğünü doğrulamak için release assets içinde yer almaktadır.
+          "@
+
+          # Save to file for artifact
+          $notes | Out-File -FilePath release_notes.md -Encoding utf8
+
+          # Set output for GitHub
+          "notes<<EOF" >> $env:GITHUB_OUTPUT
+          $notes >> $env:GITHUB_OUTPUT
+          "EOF" >> $env:GITHUB_OUTPUT
+
+      - name: Calculate SHA256 Checksum
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          $hash = Get-FileHash -Path "./publish/UnboundDashboard-$version-win-x64.exe" -Algorithm SHA256
+          $checksum = "$($hash.Hash)  UnboundDashboard-$version-win-x64.exe"
+          $checksum | Out-File -FilePath "./publish/SHA256SUMS.txt" -Encoding utf8
+          Write-Host "SHA256: $checksum"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: UnboundDashboard ${{ github.event.inputs.version }}
+          body: ${{ steps.release_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+          files: |
+            ./publish/UnboundDashboard-${{ github.event.inputs.version }}-win-x64.exe
+            ./publish/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnboundDashboard-${{ github.event.inputs.version }}
+          path: |
+            ./publish/UnboundDashboard-${{ github.event.inputs.version }}-win-x64.exe
+            ./publish/SHA256SUMS.txt
+            release_notes.md
+          retention-days: 30
