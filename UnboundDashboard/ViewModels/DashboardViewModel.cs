@@ -164,14 +164,14 @@ namespace UnboundDashboard.ViewModels
 
             // Commands
             // Önbellek Doldurma: Sık girilen siteleri hızlıca sunucuya sorarak önbelleğe alır
-            WarmupCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound sh -c 'for d in google.com youtube.com apple.com facebook.com netflix.com microsoft.com whatsapp.net instagram.com x.com; do dig +short @127.0.0.1 $d >/dev/null; done'"));
+            WarmupCommand = new AsyncRelayCommand(() => ExecuteCommandAsync("docker exec unbound sh -c 'for d in google.com youtube.com apple.com facebook.com netflix.com microsoft.com whatsapp.net instagram.com x.com; do dig +short @127.0.0.1 $d >/dev/null; done'"));
             
             // Temizleme: '.' kök zonunu silmek, hiyerarşik olarak tüm internet önbelleğini sıfırlar
-            FlushCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound unbound-control flush_zone ."));
+            FlushCommand = new AsyncRelayCommand(() => ExecuteCommandAsync("docker exec unbound unbound-control flush_zone ."));
             
-            RestartCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker restart unbound"));
+            RestartCommand = new AsyncRelayCommand(() => ExecuteCommandAsync("docker restart unbound"));
             
-            SpeedTestCommand = new RelayCommand(async () => await ExecuteCommandAsync("dig @127.0.0.1 google.com"));
+            SpeedTestCommand = new AsyncRelayCommand(() => ExecuteCommandAsync("dig @127.0.0.1 google.com"));
 
             // Timer for updates
             _updateTimer = new DispatcherTimer
@@ -502,22 +502,48 @@ namespace UnboundDashboard.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    // RelayCommand implementation
-    public class RelayCommand : ICommand
+    // AsyncRelayCommand implementation
+    public class AsyncRelayCommand : ICommand
     {
         private readonly Func<Task> _execute;
         private readonly Func<bool>? _canExecute;
+        private bool _isExecuting;
 
         public event EventHandler? CanExecuteChanged;
 
-        public RelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
+        public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+        public bool CanExecute(object? parameter) => !_isExecuting && (_canExecute?.Invoke() ?? true);
 
-        public async void Execute(object? parameter) => await _execute();
+        public async void Execute(object? parameter)
+        {
+            if (!CanExecute(parameter)) return;
+
+            try
+            {
+                _isExecuting = true;
+                RaiseCanExecuteChanged();
+                await _execute();
+            }
+            catch (Exception ex)
+            {
+                // Basic error logging to debug output to avoid crashing the app
+                System.Diagnostics.Debug.WriteLine($"Error executing command: {ex.Message}");
+            }
+            finally
+            {
+                _isExecuting = false;
+                RaiseCanExecuteChanged();
+            }
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 }
