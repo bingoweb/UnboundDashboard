@@ -282,17 +282,17 @@ echo '==X=='
             var sections = new Dictionary<string, List<string>>();
             string? currentKey = null;
 
-            foreach (var line in output.Split('\n'))
+            foreach (var line in output.AsSpan().EnumerateLines())
             {
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("==") && trimmed.EndsWith("=="))
                 {
-                    currentKey = trimmed.Trim('=');
+                    currentKey = trimmed.Trim('=').ToString();
                     sections[currentKey] = new List<string>();
                 }
-                else if (currentKey != null && !string.IsNullOrWhiteSpace(trimmed))
+                else if (currentKey != null && !trimmed.IsEmpty)
                 {
-                    sections[currentKey].Add(trimmed);
+                    sections[currentKey].Add(trimmed.ToString());
                 }
             }
 
