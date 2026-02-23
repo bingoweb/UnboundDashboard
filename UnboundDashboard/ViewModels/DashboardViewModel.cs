@@ -24,6 +24,10 @@ namespace UnboundDashboard.ViewModels
         private bool _disposed;
         private readonly LoggingService _logger = new LoggingService();
 
+        private readonly DatabaseService _databaseService;
+        private readonly List<MetricsHistoryRecord> _pendingMetrics = new();
+        private DateTime _lastDbSaveTime = DateTime.Now;
+
         // Static HttpClient for IP detection (prevents socket exhaustion)
         private static readonly HttpClient _httpClient = new HttpClient
         {
@@ -162,6 +166,8 @@ namespace UnboundDashboard.ViewModels
             _sshService = new SshService(_sshHostname, _sshPort, _sshUsername,
                 password: password, privateKeyPath: keyPath);
 
+            _databaseService = new DatabaseService(_logger);
+
             // Commands
             // Önbellek Doldurma: Sık girilen siteleri hızlıca sunucuya sorarak önbelleğe alır
             WarmupCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound sh -c 'for d in google.com youtube.com apple.com facebook.com netflix.com microsoft.com whatsapp.net instagram.com x.com; do dig +short @127.0.0.1 $d >/dev/null; done'"));
@@ -257,6 +263,36 @@ namespace UnboundDashboard.ViewModels
                 }
 
                 _metrics = newMetrics;
+
+                // Add to pending metrics for database
+                var record = new MetricsHistoryRecord
+                {
+                    Timestamp = DateTime.Now,
+                    QPS = newMetrics.CurrentQPS,
+                    CacheHitPercent = newMetrics.CacheHitPercent,
+                    CpuUsage = newMetrics.CpuUsage,
+                    RamPercent = newMetrics.RamPercent
+                };
+
+                lock (_pendingMetrics)
+                {
+                    _pendingMetrics.Add(record);
+                }
+
+                // Check if we need to save to DB (periodically)
+                if ((DateTime.Now - _lastDbSaveTime).TotalMinutes >= AppConstants.DatabaseWriteIntervalMinutes)
+                {
+                    _lastDbSaveTime = DateTime.Now;
+                    var recordsToSave = new List<MetricsHistoryRecord>();
+                    lock (_pendingMetrics)
+                    {
+                        recordsToSave.AddRange(_pendingMetrics);
+                        _pendingMetrics.Clear();
+                    }
+
+                    // Save to DB asynchronously (fire and forget pattern safe due to internal error handling)
+                    _ = _databaseService.InsertMetricsAsync(recordsToSave);
+                }
 
                 // Update query types
                 Application.Current.Dispatcher.Invoke(() =>

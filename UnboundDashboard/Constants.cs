@@ -49,5 +49,11 @@ namespace UnboundDashboard
         public const string ColorCyan = "#6b7280";     // Tactical Gray / Muted
         public const string ColorOrange = "#f59e0b";   // Warning Amber
         public const string ColorPurple = "#34d399";   // Bright Green Action
+
+        // Database Configuration
+        public const string DatabaseDirectory = "data";
+        public const string DatabaseFileName = "metrics.db";
+        public const string MetricsTableName = "MetricsHistory";
+        public const int DatabaseWriteIntervalMinutes = 5;
     }
 }

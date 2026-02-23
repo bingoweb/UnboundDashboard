@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <!-- SSH Bağlantısı -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
 
     <!-- Canlı Grafikler -->
