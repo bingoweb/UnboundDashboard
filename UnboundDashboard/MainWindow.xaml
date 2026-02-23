@@ -284,7 +284,7 @@
             <UniformGrid Grid.Row="1" Rows="1" Columns="4" Margin="0,12,0,0">
 
                 <!-- ◆ TOTAL QUERIES -->
-                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="12" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
                         <SolidColorBrush Color="#142e20"/>
@@ -314,7 +314,7 @@
                 </Border>
 
                 <!-- ◆ CACHE HIT -->
-                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="12" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
                         <SolidColorBrush Color="#142e20"/>
@@ -344,7 +344,7 @@
                 </Border>
 
                 <!-- ◆ RESPONSE TIME -->
-                <Border CornerRadius="2" Margin="0,0,10,0" Padding="0"
+                <Border CornerRadius="12" Margin="0,0,10,0" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
                         <SolidColorBrush Color="#142e20"/>
@@ -374,7 +374,7 @@
                 </Border>
 
                 <!-- ◆ QPS -->
-                <Border CornerRadius="2" Padding="0"
+                <Border CornerRadius="12" Padding="0"
                         BorderThickness="1" ClipToBounds="True">
                     <Border.BorderBrush>
                         <SolidColorBrush Color="#142e20"/>
@@ -423,7 +423,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- CACHE PANEL -->
-                    <Border Grid.Row="0" CornerRadius="2" Padding="16,14"
+                    <Border Grid.Row="0" CornerRadius="12" Padding="16,14"
                             BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
                             <SolidColorBrush Color="#08100c"/>
@@ -438,7 +438,7 @@
 
                             <!-- Header -->
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                <Border CornerRadius="12" Padding="7" Margin="0,0,10,0"
                                         BorderBrush="#142e20" BorderThickness="1">
                                     <Border.Background>
                                         <SolidColorBrush Color="#0a120e"/>
@@ -465,7 +465,7 @@
                                        Foreground="#6b7280" Margin="0,2,0,6"/>
 
                             <!-- Status message -->
-                            <Border Grid.Row="3" CornerRadius="2" Padding="14,10" VerticalAlignment="Bottom"
+                            <Border Grid.Row="3" CornerRadius="12" Padding="14,10" VerticalAlignment="Bottom"
                                     BorderBrush="#142e20" BorderThickness="1">
                                 <Border.Background>
                                     <SolidColorBrush Color="#0a120e"/>
@@ -478,7 +478,7 @@
                     </Border>
 
                     <!-- MATRIX TERMINAL FEED -->
-                    <Border Grid.Row="2" CornerRadius="2" Padding="16,12"
+                    <Border Grid.Row="2" CornerRadius="12" Padding="16,12"
                             BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
                             <SolidColorBrush Color="#08100c"/>
@@ -489,7 +489,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                <Border CornerRadius="12" Padding="7" Margin="0,0,10,0"
                                         BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
                                     <Path Data="{StaticResource Icon_Pulse}" Fill="#10b981" Width="14" Height="14" Stretch="Uniform"/>
                                 </Border>
@@ -499,7 +499,7 @@
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                             <!-- MATRIX TERMINAL FEED -->
-                            <Border Grid.Row="1" Background="#050a08" CornerRadius="2" BorderThickness="1" BorderBrush="#142e20" Margin="0,4,0,0" ClipToBounds="True">
+                            <Border Grid.Row="1" Background="#050a08" CornerRadius="12" BorderThickness="1" BorderBrush="#142e20" Margin="0,4,0,0" ClipToBounds="True">
                                 <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                                     <ItemsControl ItemsSource="{Binding TerminalLogs}" Margin="12,12,12,12">
                                         <ItemsControl.ItemTemplate>
@@ -528,7 +528,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- SYSTEM PANEL -->
-                    <Border Grid.Row="0" CornerRadius="2" Padding="16,14"
+                    <Border Grid.Row="0" CornerRadius="12" Padding="16,14"
                             BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
                             <SolidColorBrush Color="#08100c"/>
@@ -536,7 +536,7 @@
                         <StackPanel>
                             <!-- Header -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                <Border CornerRadius="12" Padding="7" Margin="0,0,10,0"
                                         BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
                                     <Path Data="{StaticResource Icon_Cpu}" Fill="#10b981" Width="16" Height="16" Stretch="Uniform"/>
                                 </Border>
@@ -545,7 +545,7 @@
                             </StackPanel>
 
                             <!-- CPU -->
-                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                            <Border Background="#0a120e" CornerRadius="12" Padding="16,8" Margin="0,0,0,6"
                                     BorderBrush="#142e20" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -564,7 +564,7 @@
                             </Border>
 
                             <!-- RAM -->
-                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                            <Border Background="#0a120e" CornerRadius="12" Padding="16,8" Margin="0,0,0,6"
                                     BorderBrush="#142e20" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -583,7 +583,7 @@
                             </Border>
 
                             <!-- Disk -->
-                            <Border Background="#0a120e" CornerRadius="2" Padding="16,8" Margin="0,0,0,6"
+                            <Border Background="#0a120e" CornerRadius="12" Padding="16,8" Margin="0,0,0,6"
                                     BorderBrush="#142e20" BorderThickness="1">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource Icon_Server}" Fill="#6b7280" Width="12" Height="12" Margin="0,0,8,0" Stretch="Uniform" VerticalAlignment="Center"/>
@@ -595,7 +595,7 @@
                     </Border>
 
                     <!-- QUERY TYPES -->
-                    <Border Grid.Row="2" CornerRadius="2" Padding="16,12"
+                    <Border Grid.Row="2" CornerRadius="12" Padding="16,12"
                             BorderBrush="#142e20" BorderThickness="1">
                         <Border.Background>
                             <SolidColorBrush Color="#08100c"/>
@@ -607,7 +607,7 @@
                             </Grid.RowDefinitions>
                             
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border CornerRadius="2" Padding="7" Margin="0,0,10,0"
+                                <Border CornerRadius="12" Padding="7" Margin="0,0,10,0"
                                         BorderBrush="#142e20" BorderThickness="1" Background="#0a120e">
                                     <Path Data="{StaticResource Icon_Server}" Fill="#10b981" Width="14" Height="14" Stretch="Uniform"/>
                                 </Border>
@@ -619,7 +619,7 @@
                                 <ItemsControl ItemsSource="{Binding QueryTypes}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="#0a120e" CornerRadius="2" Padding="14,5" Margin="0,0,0,4"
+                                            <Border Background="#0a120e" CornerRadius="12" Padding="14,5" Margin="0,0,0,4"
                                                     BorderBrush="#142e20" BorderThickness="1">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -628,7 +628,7 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11"
                                                                Foreground="#6b7280" VerticalAlignment="Center"/>
-                                                    <Border Grid.Column="1" CornerRadius="2" Padding="10,3"
+                                                    <Border Grid.Column="1" CornerRadius="12" Padding="10,3"
                                                             BorderBrush="#142e20" BorderThickness="1" Background="#08100c">
                                                         <TextBlock Text="{Binding Count}" FontSize="11"
                                                                    Foreground="#10b981" FontWeight="Bold"/>
@@ -647,7 +647,7 @@
             <!-- ═══════════════════════════════════════════════════════ -->
             <!--                  ACTION BUTTONS                         -->
             <!-- ═══════════════════════════════════════════════════════ -->
-            <Border Grid.Row="3" CornerRadius="2" Padding="14,10" Margin="0,12,0,0"
+            <Border Grid.Row="3" CornerRadius="12" Padding="14,10" Margin="0,12,0,0"
                     BorderBrush="#142e20" BorderThickness="1">
                 <Border.Background>
                     <SolidColorBrush Color="#08100c"/>

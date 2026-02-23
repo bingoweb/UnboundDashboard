@@ -9,22 +9,21 @@
 
 | Alan | Değer |
 |---|---|
-| **Proje Adı** | Unbound DNS İzleme Merkezi (Dashboard) |
-| **Versiyon** | v5.1.0 |
+| **Proje Adı** | Unbound Cyber Threat Monitor |
+| **Versiyon** | v6.0.0 |
 | **Platform** | Windows (WPF — .NET 8) |
 | **Dil** | C# + XAML |
 | **Mimari** | MVVM (Model-View-ViewModel) |
 | **Amaç** | Uzak Linux sunucudaki Unbound DNS Resolver servisini SSH üzerinden gerçek zamanlı izlemek ve yönetmek |
-| **Hedef Kullanıcı** | Ev ağı yöneticileri, self-hosted DNS kullananlar |
-| **Dağıtım** | Self-contained single-file EXE (~184 MB, .NET dahil) |
+| **Hedef Kullanıcı** | Siber güvenlik uzmanları, ağ yöneticileri, self-hosted DNS kullananlar |
+| **Dağıtım** | 100% Portatif Self-contained single-file EXE (~193 MB, tüm DLL'ler ve .NET gömülü) |
 
 ### Ne Yapar?
 - Uzak sunucuya SSH ile bağlanır
-- Docker içinde çalışan Unbound DNS Resolver'dan `unbound-control stats_noreset` ile istatistik toplar
-- CPU, RAM, Disk, Uptime gibi sistem metriklerini getirir
-- Tüm verileri gerçek zamanlı (2 saniye interval) olarak günceller
-- Sorgu türlerini, cache hit oranını, cevap süresini görselleştirir
-- QPS (sorgu/saniye) grafiğini son 60 saniye için gösterir
+- Docker içinde çalışan Unbound DNS Resolver'dan tam siber telemetri toplar
+- CPU, RAM, Disk, Uptime, IP Adresleri, Unbound Derleme sürümü gibi sistem metriklerini getirir
+- Matrix Stili "Siber İstihbarat Terminali" üzerinden gerçek zamanlı DNS logları ve teknik eğitim verileri (5'e 1 oranında) akıtır
+- Sorgu türlerini, cache hit oranını, cevap süresini 12px oval profesyonel taktiksel arayüzde görselleştirir
 - DNS önbellek ısıtma, temizleme, servis yeniden başlatma ve hız testi komutlarını çalıştırır
 
 ---
@@ -119,32 +118,31 @@ unbound2/
 **Sorumluluk**: Dashboard UI layout'u.
 
 **Özellikler**:
-- **Borderless pencere**: `WindowStyle="None"`, `AllowsTransparency="True"`, custom title bar
-- **Gradient arka plan**: Koyu lacivert diagonal gradient
-- **Dekoratif orb'lar**: 3 adet büyük `Ellipse` (cyan, mor, yeşil) arka planda derinlik hissi yaratır
-- **Metrik kartları** (4 adet): Her birinde gradient border, top glow line, inner radial orb, gradient text
-- **Önbellek paneli**: GlowProgressBar, istatistik metinleri, durum mesajı kutusu
-- **Sistem paneli**: İşlemci/Bellek progress bar'ları, Disk bilgisi, Güvenlik durumu
-- **QPS grafiği**: LiveChartsCore CartesianChart
-- **Sorgu türleri**: ItemsControl ile dinamik liste
-- **Aksiyon butonları**: 4 adet PillButton (Ön Isıtma, Temizleme, Yeniden Başlat, Hız Testi)
+- **Taktiksel Profesyonel Arayüz**: Tümüyle mat askeri renkler (`#08100c`, `#142e20`). Hiçbir gradient kullanılmaz.
+- **Oval Köşeler**: Modern UI standardı olan `CornerRadius="12"` kullanılarak profesyonel, akışkan bir dizayn elde edildi.
+- **Responsive ViewBox**: 16:9 1080p bazlı tasarım, pencere boyutundan bağımsız olarak hiçbir zaman kırpılmaz (`Viewbox Stretch="Uniform"`).
+- **Metrik Kartları** (4 adet): Toplam Sorgu, Önbellek Yanıtı, Cevap Süresi, Tarama Hızı (QPS)
+- **Siber İstihbarat Terminali**: Matrix tarzı daktilo animasyonlu, Türkçe DNS bilgi akışı sunan gerçek zamanlı log ekranı.
+- **Sistem Paneli**: İşlemci/Bellek durumları bar ile gösterilir, SSH sunucu bilgileri çekilir.
+- **Sorgu Türleri**: ItemsControl ile dinamik kaydırılabilir liste
+- **Aksiyon Butonları**: Profesyonel SVG ikonlarıyla donatılmış 4 adet fonksiyon butonu.
 
 **Layout**:
 ```
 ┌──────────────────────────────────────────┐
-│              HEADER (title bar)          │
+│              HEADER (CYBER THREAT)       │
 ├──────┬───────┬───────┬──────────────────┤
-│ SORGU│ÖNBELLE│CEVAP  │ QPS              │
-│ SAYIS│K %    │SÜRESİ │                  │
+│ TOPLAM│ÖNBELLE│CEVAP   │ TARAMA         │
+│ SORGU │K %    │SÜRESİ  │ HIZI (QPS)     │
 ├──────┴───────┴───────┴──────────────────┤
-│  ÖNBELLEK DURUMU  │  SİSTEM DURUMU      │
-│  ├─ Progress bar  │  ├─ CPU bar         │
-│  ├─ İstatistik    │  ├─ RAM bar         │
+│  ÖNBELLEK DURUMU  │  SİSTEM AKTİVİTESİ  │
+│  ├─ Progress bar  │  ├─ İşlemci bar     │
+│  ├─ İstatistik    │  ├─ Bellek bar      │
 │  └─ Durum mesajı  │  ├─ Disk            │
-│                   │  ├─ Güvenlik        │
-│  SORGU HIZI       │                     │
-│  ├─ QPS Chart     │  SORGU TÜRLERİ     │
-│                   │  ├─ A, AAAA, MX...  │
+│                   │                     │
+│  SİBER TERMİNAL   │  PROTOKOL DAĞILIMI  │
+│  ├─ Eğitim Feed   │  ├─ A, AAAA, MX...  │
+│  ├─ Canlı Loglar  │                     │
 ├───────────────────┴─────────────────────┤
 │  ÖN ISITMA │ TEMİZLEME │ BAŞLAT │ TEST │
 └─────────────────────────────────────────┘
@@ -330,25 +328,24 @@ dotnet build            # Derle
 dotnet run              # Çalıştır
 ```
 
-### Publish (Standalone EXE)
+### Publish (Tam Portatif Standalone EXE)
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true \
     -p:PublishSingleFile=true \
     -p:IncludeNativeLibrariesForSelfExtract=true \
-    -o ./publish
+    -o ./publish_portable
 ```
 
 ### Dağıtım Dosyaları
 ```
-publish/
-├── UnboundDashboard.exe    # ~184 MB (tek dosya, .NET 8 dahil)
-├── appsettings.json        # SSH ayarları
-└── setup.bat               # İlk kurulum (VC++ Runtime kontrolü)
+publish_portable/
+├── UnboundDashboard.exe    # ~193 MB (Tek dosya, Native DLL'ler + .NET 8 gömülü)
+└── appsettings.json        # SSH ayarları (login panelinden otomatik de oluşturulabilir)
 ```
 
-- `setup.bat`: VC++ Runtime yoksa otomatik indirir ve kurar
-- .NET Runtime **EXE içine gömülüdür** (self-contained), ayrı kurulması gerekmez
-- İlk çalıştırmada `setup.bat`, sonrasında direkt `UnboundDashboard.exe` kullanılabilir
+- Tamamen `self-contained` olarak derlenir.
+- `IncludeNativeLibrariesForSelfExtract=true` ile WPF, SkiaSharp ve C++ DLL'lerinin hepsi Exe içine hapsedilir.
+- İlk çalıştırmada dahi hedef PC'de internet veya .NET kurulumuna ihtiyaç duymaz. Doğrudan USB'den bile taşınabilir portatiftir.
 
 ---
 
