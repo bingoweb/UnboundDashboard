@@ -145,7 +145,9 @@ echo '==V==';docker exec unbound unbound-control stats_noreset 2>/dev/null;
 echo '==U==';uptime -p 2>/dev/null;
 echo '==M==';free -m|awk 'NR==2{print $2,$3}';
 echo '==C==';grep 'cpu ' /proc/stat|awk '{u=$2+$4;t=$2+$4+$5;printf ""%.1f"",u/t*100}';
-echo '';echo '==D==';df -h /|awk 'NR==2{print $3""/""$2"" (""$5"")""}'
+echo '';echo '==D==';df -h /|awk 'NR==2{print $3""/""$2"" (""$5"")""}';
+echo '==O==';grep -oP '(?<=^PRETTY_NAME="").*(?="")' /etc/os-release 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '""""';
+echo '==R==';docker exec unbound unbound -V 2>/dev/null | head -n 1 | awk '{print $2}';
 echo '==X=='
 ";
 
@@ -199,9 +201,28 @@ echo '==X=='
                 metrics.DiskUsage = disk.FirstOrDefault() ?? "—";
             }
 
+            // Server OS
+            if (sections.TryGetValue("O", out var os))
+            {
+                metrics.ServerOS = os.FirstOrDefault()?.Trim() ?? "Bilinmeyen OS";
+            }
+
+            // Unbound Version
+            if (sections.TryGetValue("R", out var version))
+            {
+                metrics.UnboundVersion = version.FirstOrDefault()?.Trim() ?? "Bilinmeyen Versiyon";
+            }
+
             // Parse Unbound stats
             if (sections.TryGetValue("V", out var unboundStats))
             {
+                // Capture raw lines for the hacker terminal feed
+                foreach (var line in unboundStats)
+                {
+                    if (line.Contains('='))
+                        metrics.RawTerminalLines.Add(line.Trim());
+                }
+
                 var stats = ParseUnboundStats(unboundStats);
 
                 metrics.CacheHits = (long)stats.GetValueOrDefault("total.num.cachehits", 0);

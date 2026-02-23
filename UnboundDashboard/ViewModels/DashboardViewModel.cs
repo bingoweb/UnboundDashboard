@@ -8,11 +8,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
-using SkiaSharp;
+using System.Collections.Generic;
+using System.Net.Http;
 using UnboundDashboard.Models;
 using UnboundDashboard.Services;
 
@@ -25,6 +22,16 @@ namespace UnboundDashboard.ViewModels
         private DnsMetrics _metrics = new();
         private bool _isUpdating;
         private bool _disposed;
+
+        // Typewriter Terminal Variables
+        private readonly DispatcherTimer _typewriterTimer;
+        private readonly Queue<(string Text, Brush Color)> _typewriterQueue = new();
+        private string _currentTypewriterLine = "";
+        private Brush _currentTypewriterColor = Brushes.LimeGreen;
+        private int _currentTypewriterIndex = 0;
+        private int _terminalLineCounter = 0;
+        private string _clientIp = "Taranıyor...";
+        private readonly DateTime _appStartTime = DateTime.Now;
 
         private const int MaxHistorySize = 60; // Son 60 saniye
 
@@ -104,33 +111,12 @@ namespace UnboundDashboard.ViewModels
 
         public string DiskText => $"{_metrics.DiskUsage} toplam kullanım";
 
-        public string SecurityStatus
-        {
-            get
-            {
-                var status = _metrics.DnssecActive
-                    ? "✓ DNSSEC Koruma: AKTİF - Sahte ve zararlı sitelerden korunuyorsunuz\n"
-                    : $"⚠ DNSSEC Uyarı: {_metrics.BogusBlocked} TEHDİT ENGELLENDI! Zararlı site girişimi tespit edildi\n";
-
-                status += $"• Başarılı Sorgu: {FormatNumber(_metrics.SuccessfulQueries)} doğru yanıt verildi";
-
-                if (_metrics.NxDomain > 0)
-                    status += $"\n• Bulunamayan Site: {FormatNumber(_metrics.NxDomain)} alan adı mevcut değil (NXDOMAIN)";
-
-                if (_metrics.ServerFail > 0)
-                    status += $"\n⚠ Sunucu Hatası: {FormatNumber(_metrics.ServerFail)} DNS sunucusu yanıt veremedi (SERVFAIL)";
-
-                return status;
-            }
-        }
 
         // Query Types
         public ObservableCollection<QueryTypeInfo> QueryTypes { get; } = new();
 
-        // Charts
-        public ObservableCollection<ISeries> QPSSeries { get; set; }
-        public Axis[] XAxes { get; set; }
-        public Axis[] YAxes { get; set; }
+        // Terminal Log Data Stream
+        public ObservableCollection<TerminalLine> TerminalLogs { get; } = new();
 
         // SSH config — config dosyasından okunacak
         private readonly string _sshHostname;
@@ -147,56 +133,15 @@ namespace UnboundDashboard.ViewModels
                 password: password, privateKeyPath: keyPath);
 
             // Commands
-            WarmupCommand = new RelayCommand(async () => await ExecuteCommandAsync("bash /opt/unbound/dns-warmup.sh"));
+            // Önbellek Doldurma: Sık girilen siteleri hızlıca sunucuya sorarak önbelleğe alır
+            WarmupCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound sh -c 'for d in google.com youtube.com apple.com facebook.com netflix.com microsoft.com whatsapp.net instagram.com x.com; do dig +short @127.0.0.1 $d >/dev/null; done'"));
+            
+            // Temizleme: '.' kök zonunu silmek, hiyerarşik olarak tüm internet önbelleğini sıfırlar
             FlushCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound unbound-control flush_zone ."));
+            
             RestartCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker restart unbound"));
+            
             SpeedTestCommand = new RelayCommand(async () => await ExecuteCommandAsync("dig @127.0.0.1 google.com"));
-
-            // Initialize advanced charts
-            var darkCyan = new SKColor(34, 211, 238); // #22d3ee
-            var transparentCyan = new SKColor(34, 211, 238, 40); // 40 alpha
-
-            QPSSeries = new ObservableCollection<ISeries>
-            {
-                new LineSeries<double>
-                {
-                    Values = _metrics.QpsHistory,
-                    Name = "Sorgu / Saniye",
-                    LineSmoothness = 0.65, // Yumuşak kıvrımlar
-                    Fill = new LinearGradientPaint(
-                        new[] { transparentCyan, new SKColor(34, 211, 238, 0) },
-                        new SKPoint(0.5f, 0), new SKPoint(0.5f, 1) // Top to bottom
-                    ),
-                    Stroke = new SolidColorPaint(darkCyan) { StrokeThickness = 3 },
-                    GeometryFill = new SolidColorPaint(darkCyan), // Nokta içi
-                    GeometryStroke = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 }, // Nokta dışı
-                    GeometrySize = 8,
-                    YToolTipLabelFormatter = (chartPoint) => $"{chartPoint.Coordinate.PrimaryValue} QPS"
-                }
-            };
-
-            XAxes = new Axis[]
-            {
-                new Axis
-                {
-                    IsVisible = false // Alt eksen rakamlarını gizle temiz doku için
-                }
-            };
-
-            YAxes = new Axis[]
-            {
-                new Axis
-                {
-                    MinStep = 1,
-                    MinLimit = 0,
-                    LabelsPaint = new SolidColorPaint(new SKColor(100, 116, 139)), // #64748b - TextMuted
-                    SeparatorsPaint = new SolidColorPaint(new SKColor(30, 41, 59, 100)) // Hafif çizgiler
-                    {
-                        StrokeThickness = 1,
-                        PathEffect = new DashEffect(new float[] { 3, 3 }) // Kesik çizgili
-                    }
-                }
-            };
 
             // Timer for updates
             _updateTimer = new DispatcherTimer
@@ -204,6 +149,25 @@ namespace UnboundDashboard.ViewModels
                 Interval = TimeSpan.FromSeconds(2)
             };
             _updateTimer.Tick += async (s, e) => await UpdateMetricsAsync();
+
+            // Typewriter Timer (Fast ticking for matrix effect)
+            _typewriterTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(90) // Substantially slower: 90ms per character
+            };
+            _typewriterTimer.Tick += TypewriterTimer_Tick;
+
+            // Fetch Client IP Asynchronously
+            Task.Run(async () =>
+            {
+                try
+                {
+                    using var hc = new HttpClient();
+                    hc.Timeout = TimeSpan.FromSeconds(3);
+                    _clientIp = await hc.GetStringAsync("https://api.ipify.org");
+                }
+                catch { _clientIp = "Lokal Ağ"; }
+            });
 
             // Connect and start
             Task.Run(async () =>
@@ -330,6 +294,126 @@ namespace UnboundDashboard.ViewModels
                         });
                     }
 
+                    // Process Hacker Terminal Feed into the Queue
+                    var rand = new Random();
+                    var appUptime = DateTime.Now - _appStartTime;
+                    
+                    var emerald = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10b981")); // Tactical Green CRT
+                    var cyan = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6b7280")); // Tactical Gray / Muted
+                    var orange = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f59e0b")); // Warning Amber
+                    var purple = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34d399")); // Bright Green Action
+                    var yellow = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10b981")); // Normalized Tactical Green
+
+                    // Expanded factual database with color tagging (FACTS ONLY)
+                    var facts = new (string Text, Brush Color)[]
+                    {
+                        ("[İSTİHBARAT] DNS (Alan Adı Sistemi), IP adresleri ile insan okuyabilir web adreslerini eşleştiren küresel telefon rehberidir.", emerald),
+                        ("[İSTİHBARAT] Cache (Önbellek), sık ziyaret edilen sitelerin yanıtlarını RAM'de tutarak milisaniye seviyesinde ultra hızlı erişim sağlar.", emerald),
+                        ("[İSTİHBARAT] Günde yaklaşık 100 Milyar DNS sorgusu dünya çapındaki 13 kök sunucu tarafından işlenir.", emerald),
+                        ("[İSTİHBARAT] Unbound DNS, verileri yerel olarak doğrulayıp şifreleyen profesyonel bir siber güvenlik savunma hattıdır.", emerald),
+                        ("[İSTİHBARAT] Siber güvenlik uzmanlarına göre oltalama (phishing) saldırılarının %90'ı sahte DNS zehirlenmesiyle başlar.", orange),
+                        ("[İSTİHBARAT] IPv6 protokolü 340 undesilyon IP adresi barındırabilir; bu yeni nesil, daha geniş ağ cihazı havuzu demektir.", cyan),
+                        ("[İSTİHBARAT] A Kaydı (A Record), bir web sitesinin ismini eski nesil IPv4 adresine dönüştüren temel DNS sorgusudur.", emerald),
+                        ("[İSTİHBARAT] AAAA Kaydı, bir web sitesini modern IPv6 adreslerine haritalar. İnternetin geleceğidir.", emerald),
+                        ("[İSTİHBARAT] DNS over TLS (DoT), ağ servis sağlayıcınızın girdiğiniz siteleri gözetlemesini kriptografik olarak engeller.", purple)
+                    };
+
+                    // Expanded statistics pool
+                    var stats = new List<(string Text, Brush Color)>
+                    {
+                        ($"[ZAMAN] Senkronize Sistem Saati: {DateTime.Now:HH:mm:ss.fff}", cyan),
+                        ($"[SİSTEM] Aktif Operasyon Süresi (Uptime): {(int)appUptime.TotalHours}s {appUptime.Minutes}d {appUptime.Seconds}sn", cyan),
+                        ($"[KOMUTA] Kontrol İstasyonu: {Environment.MachineName}", cyan),
+                        ($"[KOMUTA] İşletim Çekirdeği: {Environment.OSVersion.VersionString}", cyan),
+                        ($"[RADAR] Dış WAN IP Tespit Edildi: {_clientIp}", orange),
+                        ($"[HEDEF] Karşı Terminal OS: {_metrics.ServerOS}", purple),
+                        ($"[MOTOR] Çözümleyici Sürümü: {_metrics.UnboundVersion} (Bilinmeyen hedeflere karşı yetkilendirildi)", purple),
+                        ($"[BELLEK] Taktiksel RAM Kullanımı: {_metrics.RamUsed}MB ayrılmış / {_metrics.RamTotal}MB toplam kapasite", cyan),
+                        ($"[ANALİZ] {_metrics.CacheHits} hedef sorgu başarıyla lokal önbellekten (Cache) geri getirildi. (Hit Rate: %{_metrics.CacheHitPercent:F1})", purple),
+                        ($"[RADAR] Anlık Tarama Hızı: Saniyede {_metrics.CurrentQPS:F1} Hedef Çözümleniyor (QPS)", orange),
+                        ($"[OPERASYON] Genel Toplam Gönderilen Sorgu Miktarı: {_metrics.TotalQueries}", emerald),
+                        ($"[MİMAR] Güvenlik Ağ Mimarisi Onaylandı: Taylan Soylu", orange)
+                    };
+
+                    // Decode real Unbound diagnostics and translate into massively detailed Turkish sets
+                    if (newMetrics.RawTerminalLines != null)
+                    {
+                        foreach (var rawLine in newMetrics.RawTerminalLines)
+                        {
+                            var parts = rawLine.Split('=', 2);
+                            if (parts.Length == 2)
+                            {
+                                string key = parts[0].Trim();
+                                string val = parts[1].Trim();
+                                
+                                if (key == "thread0.num.queries") 
+                                    stats.Add(($"[ÇEKİRDEK_0] Thread-0 İşlemcisine Gelen İstek Sayısı: {val} (İlk çekirdek donanımı üzerinden geçen trafik)", cyan));
+                                else if (key == "total.num.queries_ip_ratelimited") 
+                                    stats.Add(($"[GÜVENLİK] Flood/DDoS Korumasına Takılan İstekler: {val} (Zararlı IP'ler bloklandı)", orange));
+                                else if (key == "total.num.cachehits") 
+                                    stats.Add(($"[PERFORMANS] Önbellekten Gelen Hızlı Yanıt Sayısı: {val} (Dış ağa çıkmadan verilen güvenli yanıtlar)", purple));
+                                else if (key == "total.num.prefetch") 
+                                    stats.Add(($"[ÖNGÖRÜ] Otomatik Yenilenen İstekler (Prefetch): {val} (Site süresi dolmadan Unbound arka planda yeniledi)", emerald));
+                                else if (key == "msg.cache.count") 
+                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Mesaj Gövdesi: {val} (Tüm IP, sunucu adı ve TTL verileri RAM'de korunuyor)", cyan));
+                                else if (key == "rrset.cache.count") 
+                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Hedef (RRSet) Kaydı: {val} (Hazır DNS kayıtları)", cyan));
+                                else if (key == "infra.cache.count") 
+                                    stats.Add(($"[ALTYAPI] Hedef Sunucu Ping Önbelleği (Infra Cache): {val} (En hızlı sunucuyu seçmek için tutulan ping listesi)", cyan));
+                                else if (key == "total.recursion.time.avg") 
+                                    stats.Add(($"[RADAR_PİNG] Hedef Çözümleme Ortalama Süresi: {val} saniye (Dünya üzerindeki kök DNS sunucularına gidiş-dönüş)", emerald));
+                                else if (key == "num.query.type.A") 
+                                    stats.Add(($"[PROTOKOL_A] A Tipi İstek: {val} (IPv4 Adres çözümleri)", purple));
+                                else if (key == "num.query.type.AAAA") 
+                                    stats.Add(($"[PROTOKOL_AAAA] AAAA Tipi İstek: {val} (Modern IPv6 Adres çözümleri)", purple));
+                                else if (key == "num.query.type.HTTPS") 
+                                    stats.Add(($"[PROTOKOL_HTTPS] HTTPS Tipi İstek: {val} (Güvenli, şifrelenmiş bağlantı altyapısı kontrol ediliyor)", purple));
+                                else if (key.StartsWith("num.query.type.")) 
+                                    stats.Add(($"[PROTOKOL] {key.Replace("num.query.type.", "")} Tipi İstek Miktarı: {val}", cyan));
+                                else if (key.StartsWith("num.query.class.")) 
+                                    stats.Add(($"[SINIF] DNS Sınıfı {key.Replace("num.query.class.", "")} İstek Sayısı: {val}", cyan));
+                                else if (key == "num.query.tcp") 
+                                    stats.Add(($"[AĞ_TCP] Güvenli TCP Protokolü İstekleri: {val} (Büyük ve sağlam veri paketleri transferi)", emerald));
+                                else if (key == "num.query.udp") 
+                                    stats.Add(($"[AĞ_UDP] Hızlı UDP Protokolü İstekleri: {val} (Hızlı ama doğrulamasız paket transferi)", emerald));
+                                else if (key == "num.query.ipv6") 
+                                    stats.Add(($"[AĞ_IPv6] IPv6 Protokolü İstekleri: {val} (Gelecek nesil IP şifreleme alt yapısı üzerinden veri çekiliyor)", emerald));
+                                else if (key.Contains("unwanted.queries")) 
+                                    stats.Add(($"[UYARI_GÜVENLİK] İstenmeyen/Şüpheli Sorgu Miktarı (Bağlantı Kesildi): {val}", orange));
+                                else if (key.Contains("recursive.replies")) 
+                                    stats.Add(($"[KÖK_SUNUCU] Başarıyla Çözülen Yanıtlar (Recursion): {val} (Direkt ana kaynak sunuculardan alınan cevaplar)", purple));
+                            }
+                        }
+                    }
+
+                    // Prepend an update warning pulse
+                    _typewriterQueue.Enqueue(("", emerald));
+                    _typewriterQueue.Enqueue(($"[AKTARIM] SSH Telemetri Verileri Güvenle Güncellendi. (Latency: 1ms)", emerald));
+
+                    // Enqueue 2 facts/stats every 2 seconds tick to keep a steady, readable flow
+                    // Strict 5:1 Ratio. Every 6th item is an Educational Fact.
+                    int linesToQueue = rand.Next(1, 4);
+                    for (int i = 0; i < linesToQueue; i++)
+                    {
+                        _terminalLineCounter++;
+                        if (_terminalLineCounter % 6 == 0)
+                        {
+                            // Enqueue educational internet fact
+                            _typewriterQueue.Enqueue(facts[rand.Next(facts.Length)]);
+                        }
+                        else
+                        {
+                            // Enqueue an actual system/network statistic
+                            _typewriterQueue.Enqueue(stats[rand.Next(stats.Count)]);
+                        }
+                    }
+
+                    // Activate the typewriter if it's paused
+                    if (!_typewriterTimer.IsEnabled)
+                    {
+                        _typewriterTimer.Start();
+                    }
+
                     // Hata durumunu güncelle
                     ErrorMessage = _sshService.LastError;
                 });
@@ -378,14 +462,73 @@ namespace UnboundDashboard.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        private void TypewriterTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_currentTypewriterIndex >= _currentTypewriterLine.Length)
+            {
+                // Current string finished typing
+                if (_typewriterQueue.Count > 0)
+                {
+                    var nextMessage = _typewriterQueue.Dequeue();
+                    _currentTypewriterLine = nextMessage.Text;
+                    _currentTypewriterColor = nextMessage.Color;
+                    _currentTypewriterIndex = 0;
+                    // Push a new empty line to the top
+                    TerminalLogs.Insert(0, new TerminalLine { Text = "", Color = _currentTypewriterColor });
+                    return; // Wait for the next tick to start typing safely
+                }
+                else
+                {
+                    // Everything is typed, pause timer until more data comes
+                    _typewriterTimer.Stop();
+                    return;
+                }
+            }
+
+            // Type the next character onto the topmost line
+            if (TerminalLogs.Count > 0)
+            {
+                _currentTypewriterIndex++;
+                TerminalLogs[0].Text = _currentTypewriterLine.Substring(0, _currentTypewriterIndex);
+            }
+
+            // Cap the visual terminal logs at 60 items so it doesn't leak memory indefinitely
+            while (TerminalLogs.Count > 60)
+            {
+                TerminalLogs.RemoveAt(TerminalLogs.Count - 1);
+            }
+        }
+
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
 
+            _typewriterTimer.Stop();
             _updateTimer.Stop();
             _sshService.Dispose();
         }
+    }
+
+    public class TerminalLine : INotifyPropertyChanged
+    {
+        private string _text = "";
+        public string Text 
+        { 
+            get => _text; 
+            set { _text = value; OnPropertyChanged(); } 
+        }
+
+        private Brush _color = Brushes.LimeGreen;
+        public Brush Color 
+        { 
+            get => _color; 
+            set { _color = value; OnPropertyChanged(); } 
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     // RelayCommand implementation

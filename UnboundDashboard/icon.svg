@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090f1e" />
+      <stop offset="100%" stop-color="#14102a" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#a78bfa" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base App Icon Outline -->
+  <rect x="16" y="16" width="224" height="224" rx="60" fill="url(#bgGrad)" />
+  <rect x="18" y="18" width="220" height="220" rx="58" fill="none" stroke="#2a1f45" stroke-width="4" />
+
+  <!-- The DNS Shield / U Core -->
+  <path d="M 80,80 L 80,140 C 80,166.5 101.5,188 128,188 C 154.5,188 176,166.5 176,140 L 176,80" 
+        fill="none" stroke="url(#accentGrad)" stroke-width="26" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Inner DNS Data Node -->
+  <circle cx="128" cy="116" r="20" fill="url(#ringGrad)" filter="url(#glow)"/>
+
+  <!-- Orbital Satellites (DNS Requests) -->
+  <circle cx="80" cy="80" r="14" fill="#22d3ee" />
+  <circle cx="176" cy="80" r="14" fill="#a78bfa" />
+  
+  <!-- Connection Beams -->
+  <line x1="80" y1="94" x2="128" y2="116" stroke="#22d3ee" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+  <line x1="176" y1="94" x2="128" y2="116" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+</svg>

@@ -12,7 +12,12 @@
     <Product>DNS İzleme Merkezi</Product>
     <Copyright>Copyright © 2024</Copyright>
     <Description>UNBOUND DNS İzleme ve Yönetim Merkezi</Description>
+    <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- SSH Bağlantısı -->
