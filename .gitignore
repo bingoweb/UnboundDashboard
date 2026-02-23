@@ -1,14 +1,17 @@
-# .NET Core
+# .NET Core Build Outputs
 bin/
 obj/
 publish/
+
+# User-specific configuration (contains credentials)
 appsettings.json
 appsettings.Development.json
 
-# Visual Studio / IDE
+# Visual Studio / IDE / AI Tools
 .vs/
 .idea/
 .vscode/
+.claude/
 *.user
 *.suo
 *.userosscache
@@ -27,6 +30,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+logs/
 
 # macOS
 .DS_Store
@@ -37,15 +41,20 @@ bld/
 *.swp
 *~.nib
 local.properties
-*.txt
-*.log
 
-# Build outputs
+# Build outputs and binaries
 *.exe
 *.dll
 publish_portable/
 
-# Eski Python Versiyonu Dosyaları
+# Log files (specific patterns only)
+*.log
+crash*.log
+build*.txt
+run*.txt
+restore*.txt
+
+# Eski Python Versiyonu Dosyaları (deprecated)
 unbound_dashboard.py
 DNS_Paneli.bat
 DNS_Paneli.ps1
