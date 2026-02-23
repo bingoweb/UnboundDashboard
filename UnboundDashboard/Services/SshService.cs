@@ -155,6 +155,7 @@ echo '==C==';grep 'cpu ' /proc/stat|awk '{u=$2+$4;t=$2+$4+$5;printf ""%.1f"",u/t
 echo '';echo '==D==';df -h /|awk 'NR==2{print $3""/""$2"" (""$5"")""}';
 echo '==O==';grep -oP '(?<=^PRETTY_NAME="").*(?="")' /etc/os-release 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '""""';
 echo '==R==';docker exec unbound unbound -V 2>/dev/null | head -n 1 | awk '{print $2}';
+echo '==Q==';timeout 0.3s tcpdump -nn -l -i any port 53 2>/dev/null | head -n 20 || true;
 echo '==X=='
 ";
 
@@ -163,6 +164,12 @@ echo '==X=='
 
             // Parse sections
             var sections = ParseSections(result);
+
+            // Live Queries
+            if (sections.TryGetValue("Q", out var queries))
+            {
+                metrics.LiveQueries = queries;
+            }
 
             // Status
             if (sections.TryGetValue("S", out var status))
