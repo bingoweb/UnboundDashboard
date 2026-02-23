@@ -20,6 +20,7 @@ namespace UnboundDashboard.Services
         private readonly string? _privateKeyPath;
         private int _reconnectAttempts;
         private const int MaxReconnectAttempts = 3;
+        private readonly LoggingService _logger = new LoggingService();
 
         /// <summary>Son hata mesajı (UI'da gösterilmek üzere)</summary>
         public string? LastError { get; private set; }
@@ -108,13 +109,19 @@ namespace UnboundDashboard.Services
 
         public async Task<string?> ExecuteCommandAsync(string command)
         {
-            if (!await EnsureConnectedAsync()) return null;
+            // Double-check connection status and null safety
+            if (!await EnsureConnectedAsync() || _client == null || !_client.IsConnected)
+                return null;
 
             try
             {
                 return await Task.Run(() =>
                 {
-                    using var cmd = _client!.CreateCommand(command);
+                    // Thread-safety: check again inside Task.Run
+                    if (_client == null || !_client.IsConnected)
+                        return null;
+
+                    using var cmd = _client.CreateCommand(command);
                     cmd.CommandTimeout = TimeSpan.FromSeconds(10);
                     var result = cmd.Execute();
                     return string.IsNullOrWhiteSpace(result) ? null : result.Trim();
@@ -341,7 +348,11 @@ echo '==X=='
             {
                 _client?.Disconnect();
             }
-            catch { /* Kapatma sırasında hataları yoksay */ }
+            catch (Exception ex)
+            {
+                // Log disposal errors but don't throw
+                _logger.Warning($"Error during SSH disconnect: {ex.Message}");
+            }
             finally
             {
                 _client?.Dispose();

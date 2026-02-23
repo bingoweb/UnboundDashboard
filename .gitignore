@@ -38,7 +38,14 @@ bld/
 *~.nib
 local.properties
 *.txt
+*.log
+
+# Build outputs
+*.exe
+*.dll
+publish_portable/
 
 # Eski Python Versiyonu Dosyaları
 unbound_dashboard.py
 DNS_Paneli.bat
+DNS_Paneli.ps1

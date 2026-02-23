@@ -22,6 +22,36 @@ namespace UnboundDashboard.ViewModels
         private DnsMetrics _metrics = new();
         private bool _isUpdating;
         private bool _disposed;
+        private readonly LoggingService _logger = new LoggingService();
+
+        // Static HttpClient for IP detection (prevents socket exhaustion)
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(3)
+        };
+
+        // Cached Random instance for terminal content
+        private readonly Random _random = new();
+
+        // Cached and frozen color brushes for terminal (created once, thread-safe)
+        private static readonly Brush _emeraldBrush;
+        private static readonly Brush _cyanBrush;
+        private static readonly Brush _orangeBrush;
+        private static readonly Brush _purpleBrush;
+
+        static DashboardViewModel()
+        {
+            // Initialize and freeze brushes for WPF thread-safety and performance
+            _emeraldBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10b981"));
+            _cyanBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6b7280"));
+            _orangeBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f59e0b"));
+            _purpleBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34d399"));
+
+            _emeraldBrush.Freeze();
+            _cyanBrush.Freeze();
+            _orangeBrush.Freeze();
+            _purpleBrush.Freeze();
+        }
 
         // Typewriter Terminal Variables
         private readonly DispatcherTimer _typewriterTimer;
@@ -162,11 +192,13 @@ namespace UnboundDashboard.ViewModels
             {
                 try
                 {
-                    using var hc = new HttpClient();
-                    hc.Timeout = TimeSpan.FromSeconds(3);
-                    _clientIp = await hc.GetStringAsync("https://api.ipify.org");
+                    _clientIp = await _httpClient.GetStringAsync("https://api.ipify.org");
                 }
-                catch { _clientIp = "Lokal Ağ"; }
+                catch (Exception ex)
+                {
+                    _logger.Warning($"Failed to fetch external IP: {ex.Message}");
+                    _clientIp = "Lokal Ağ";
+                }
             });
 
             // Connect and start
@@ -182,66 +214,6 @@ namespace UnboundDashboard.ViewModels
                     _updateTimer.Start();
                 });
             });
-        }
-
-        private (string hostname, int port, string username, string? password, string? keyPath) LoadConfig()
-        {
-            try
-            {
-                var configPath = System.IO.Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-
-                if (System.IO.File.Exists(configPath))
-                {
-                    var json = System.IO.File.ReadAllText(configPath);
-                    // Basit JSON parse (System.Text.Json gerekli değil, manuel parse)
-                    var hostname = ExtractJsonValue(json, "hostname") ?? "192.168.1.123";
-                    var portStr = ExtractJsonValue(json, "port");
-                    var port = int.TryParse(portStr, out var p) ? p : 22;
-                    var username = ExtractJsonValue(json, "username") ?? "root";
-                    var password = ExtractJsonValue(json, "password");
-                    var keyPath = ExtractJsonValue(json, "keyPath");
-
-                    return (hostname, port, username, password, keyPath);
-                }
-            }
-            catch { /* Config okunamazsa varsayılana dön */ }
-
-            return ("192.168.1.123", 22, "root", null, null);
-        }
-
-        private string? ExtractJsonValue(string json, string key)
-        {
-            var pattern = $"\"{key}\"";
-            var idx = json.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0) return null;
-
-            var colonIdx = json.IndexOf(':', idx + pattern.Length);
-            if (colonIdx < 0) return null;
-
-            var rest = json.Substring(colonIdx + 1).TrimStart();
-
-            // Numara ise
-            if (char.IsDigit(rest[0]))
-            {
-                var end = 0;
-                while (end < rest.Length && (char.IsDigit(rest[end]) || rest[end] == '.'))
-                    end++;
-                return rest.Substring(0, end);
-            }
-
-            // String ise
-            if (rest[0] == '"')
-            {
-                var closeQuote = rest.IndexOf('"', 1);
-                if (closeQuote > 1)
-                    return rest.Substring(1, closeQuote - 1);
-            }
-
-            // null ise
-            if (rest.StartsWith("null")) return null;
-
-            return null;
         }
 
         private async Task UpdateMetricsAsync()
@@ -272,10 +244,16 @@ namespace UnboundDashboard.ViewModels
                 // Add new data point
                 newMetrics.QpsHistory.Add(Math.Round(qps, 1));
 
-                // QPS history sınırlaması (bellek koruması)
-                while (newMetrics.QpsHistory.Count > MaxHistorySize)
+                // QPS history sınırlaması (bellek koruması) - Efficient batch removal
+                if (newMetrics.QpsHistory.Count > MaxHistorySize)
                 {
-                    newMetrics.QpsHistory.RemoveAt(0);
+                    var excess = newMetrics.QpsHistory.Count - MaxHistorySize;
+                    var itemsToKeep = newMetrics.QpsHistory.Skip(excess).ToList();
+                    newMetrics.QpsHistory.Clear();
+                    foreach (var item in itemsToKeep)
+                    {
+                        newMetrics.QpsHistory.Add(item);
+                    }
                 }
 
                 _metrics = newMetrics;
@@ -295,44 +273,37 @@ namespace UnboundDashboard.ViewModels
                     }
 
                     // Process Hacker Terminal Feed into the Queue
-                    var rand = new Random();
                     var appUptime = DateTime.Now - _appStartTime;
-                    
-                    var emerald = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10b981")); // Tactical Green CRT
-                    var cyan = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6b7280")); // Tactical Gray / Muted
-                    var orange = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f59e0b")); // Warning Amber
-                    var purple = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#34d399")); // Bright Green Action
-                    var yellow = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10b981")); // Normalized Tactical Green
 
                     // Expanded factual database with color tagging (FACTS ONLY)
                     var facts = new (string Text, Brush Color)[]
                     {
-                        ("[İSTİHBARAT] DNS (Alan Adı Sistemi), IP adresleri ile insan okuyabilir web adreslerini eşleştiren küresel telefon rehberidir.", emerald),
-                        ("[İSTİHBARAT] Cache (Önbellek), sık ziyaret edilen sitelerin yanıtlarını RAM'de tutarak milisaniye seviyesinde ultra hızlı erişim sağlar.", emerald),
-                        ("[İSTİHBARAT] Günde yaklaşık 100 Milyar DNS sorgusu dünya çapındaki 13 kök sunucu tarafından işlenir.", emerald),
-                        ("[İSTİHBARAT] Unbound DNS, verileri yerel olarak doğrulayıp şifreleyen profesyonel bir siber güvenlik savunma hattıdır.", emerald),
-                        ("[İSTİHBARAT] Siber güvenlik uzmanlarına göre oltalama (phishing) saldırılarının %90'ı sahte DNS zehirlenmesiyle başlar.", orange),
-                        ("[İSTİHBARAT] IPv6 protokolü 340 undesilyon IP adresi barındırabilir; bu yeni nesil, daha geniş ağ cihazı havuzu demektir.", cyan),
-                        ("[İSTİHBARAT] A Kaydı (A Record), bir web sitesinin ismini eski nesil IPv4 adresine dönüştüren temel DNS sorgusudur.", emerald),
-                        ("[İSTİHBARAT] AAAA Kaydı, bir web sitesini modern IPv6 adreslerine haritalar. İnternetin geleceğidir.", emerald),
-                        ("[İSTİHBARAT] DNS over TLS (DoT), ağ servis sağlayıcınızın girdiğiniz siteleri gözetlemesini kriptografik olarak engeller.", purple)
+                        ("[İSTİHBARAT] DNS (Alan Adı Sistemi), IP adresleri ile insan okuyabilir web adreslerini eşleştiren küresel telefon rehberidir.", _emeraldBrush),
+                        ("[İSTİHBARAT] Cache (Önbellek), sık ziyaret edilen sitelerin yanıtlarını RAM'de tutarak milisaniye seviyesinde ultra hızlı erişim sağlar.", _emeraldBrush),
+                        ("[İSTİHBARAT] Günde yaklaşık 100 Milyar DNS sorgusu dünya çapındaki 13 kök sunucu tarafından işlenir.", _emeraldBrush),
+                        ("[İSTİHBARAT] Unbound DNS, verileri yerel olarak doğrulayıp şifreleyen profesyonel bir siber güvenlik savunma hattıdır.", _emeraldBrush),
+                        ("[İSTİHBARAT] Siber güvenlik uzmanlarına göre oltalama (phishing) saldırılarının %90'ı sahte DNS zehirlenmesiyle başlar.", _orangeBrush),
+                        ("[İSTİHBARAT] IPv6 protokolü 340 undesilyon IP adresi barındırabilir; bu yeni nesil, daha geniş ağ cihazı havuzu demektir.", _cyanBrush),
+                        ("[İSTİHBARAT] A Kaydı (A Record), bir web sitesinin ismini eski nesil IPv4 adresine dönüştüren temel DNS sorgusudur.", _emeraldBrush),
+                        ("[İSTİHBARAT] AAAA Kaydı, bir web sitesini modern IPv6 adreslerine haritalar. İnternetin geleceğidir.", _emeraldBrush),
+                        ("[İSTİHBARAT] DNS over TLS (DoT), ağ servis sağlayıcınızın girdiğiniz siteleri gözetlemesini kriptografik olarak engeller.", _purpleBrush)
                     };
 
                     // Expanded statistics pool
                     var stats = new List<(string Text, Brush Color)>
                     {
-                        ($"[ZAMAN] Senkronize Sistem Saati: {DateTime.Now:HH:mm:ss.fff}", cyan),
-                        ($"[SİSTEM] Aktif Operasyon Süresi (Uptime): {(int)appUptime.TotalHours}s {appUptime.Minutes}d {appUptime.Seconds}sn", cyan),
-                        ($"[KOMUTA] Kontrol İstasyonu: {Environment.MachineName}", cyan),
-                        ($"[KOMUTA] İşletim Çekirdeği: {Environment.OSVersion.VersionString}", cyan),
-                        ($"[RADAR] Dış WAN IP Tespit Edildi: {_clientIp}", orange),
-                        ($"[HEDEF] Karşı Terminal OS: {_metrics.ServerOS}", purple),
-                        ($"[MOTOR] Çözümleyici Sürümü: {_metrics.UnboundVersion} (Bilinmeyen hedeflere karşı yetkilendirildi)", purple),
-                        ($"[BELLEK] Taktiksel RAM Kullanımı: {_metrics.RamUsed}MB ayrılmış / {_metrics.RamTotal}MB toplam kapasite", cyan),
-                        ($"[ANALİZ] {_metrics.CacheHits} hedef sorgu başarıyla lokal önbellekten (Cache) geri getirildi. (Hit Rate: %{_metrics.CacheHitPercent:F1})", purple),
-                        ($"[RADAR] Anlık Tarama Hızı: Saniyede {_metrics.CurrentQPS:F1} Hedef Çözümleniyor (QPS)", orange),
-                        ($"[OPERASYON] Genel Toplam Gönderilen Sorgu Miktarı: {_metrics.TotalQueries}", emerald),
-                        ($"[MİMAR] Güvenlik Ağ Mimarisi Onaylandı: Taylan Soylu", orange)
+                        ($"[ZAMAN] Senkronize Sistem Saati: {DateTime.Now:HH:mm:ss.fff}", _cyanBrush),
+                        ($"[SİSTEM] Aktif Operasyon Süresi (Uptime): {(int)appUptime.TotalHours}s {appUptime.Minutes}d {appUptime.Seconds}sn", _cyanBrush),
+                        ($"[KOMUTA] Kontrol İstasyonu: {Environment.MachineName}", _cyanBrush),
+                        ($"[KOMUTA] İşletim Çekirdeği: {Environment.OSVersion.VersionString}", _cyanBrush),
+                        ($"[RADAR] Dış WAN IP Tespit Edildi: {_clientIp}", _orangeBrush),
+                        ($"[HEDEF] Karşı Terminal OS: {_metrics.ServerOS}", _purpleBrush),
+                        ($"[MOTOR] Çözümleyici Sürümü: {_metrics.UnboundVersion} (Bilinmeyen hedeflere karşı yetkilendirildi)", _purpleBrush),
+                        ($"[BELLEK] Taktiksel RAM Kullanımı: {_metrics.RamUsed}MB ayrılmış / {_metrics.RamTotal}MB toplam kapasite", _cyanBrush),
+                        ($"[ANALİZ] {_metrics.CacheHits} hedef sorgu başarıyla lokal önbellekten (Cache) geri getirildi. (Hit Rate: %{_metrics.CacheHitPercent:F1})", _purpleBrush),
+                        ($"[RADAR] Anlık Tarama Hızı: Saniyede {_metrics.CurrentQPS:F1} Hedef Çözümleniyor (QPS)", _orangeBrush),
+                        ($"[OPERASYON] Genel Toplam Gönderilen Sorgu Miktarı: {_metrics.TotalQueries}", _emeraldBrush),
+                        ($"[MİMAR] Güvenlik Ağ Mimarisi Onaylandı: Taylan Soylu", _orangeBrush)
                     };
 
                     // Decode real Unbound diagnostics and translate into massively detailed Turkish sets
@@ -347,64 +318,64 @@ namespace UnboundDashboard.ViewModels
                                 string val = parts[1].Trim();
                                 
                                 if (key == "thread0.num.queries") 
-                                    stats.Add(($"[ÇEKİRDEK_0] Thread-0 İşlemcisine Gelen İstek Sayısı: {val} (İlk çekirdek donanımı üzerinden geçen trafik)", cyan));
+                                    stats.Add(($"[ÇEKİRDEK_0] Thread-0 İşlemcisine Gelen İstek Sayısı: {val} (İlk çekirdek donanımı üzerinden geçen trafik)", _cyanBrush));
                                 else if (key == "total.num.queries_ip_ratelimited") 
-                                    stats.Add(($"[GÜVENLİK] Flood/DDoS Korumasına Takılan İstekler: {val} (Zararlı IP'ler bloklandı)", orange));
+                                    stats.Add(($"[GÜVENLİK] Flood/DDoS Korumasına Takılan İstekler: {val} (Zararlı IP'ler bloklandı)", _orangeBrush));
                                 else if (key == "total.num.cachehits") 
-                                    stats.Add(($"[PERFORMANS] Önbellekten Gelen Hızlı Yanıt Sayısı: {val} (Dış ağa çıkmadan verilen güvenli yanıtlar)", purple));
+                                    stats.Add(($"[PERFORMANS] Önbellekten Gelen Hızlı Yanıt Sayısı: {val} (Dış ağa çıkmadan verilen güvenli yanıtlar)", _purpleBrush));
                                 else if (key == "total.num.prefetch") 
-                                    stats.Add(($"[ÖNGÖRÜ] Otomatik Yenilenen İstekler (Prefetch): {val} (Site süresi dolmadan Unbound arka planda yeniledi)", emerald));
+                                    stats.Add(($"[ÖNGÖRÜ] Otomatik Yenilenen İstekler (Prefetch): {val} (Site süresi dolmadan Unbound arka planda yeniledi)", _emeraldBrush));
                                 else if (key == "msg.cache.count") 
-                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Mesaj Gövdesi: {val} (Tüm IP, sunucu adı ve TTL verileri RAM'de korunuyor)", cyan));
+                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Mesaj Gövdesi: {val} (Tüm IP, sunucu adı ve TTL verileri RAM'de korunuyor)", _cyanBrush));
                                 else if (key == "rrset.cache.count") 
-                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Hedef (RRSet) Kaydı: {val} (Hazır DNS kayıtları)", cyan));
+                                    stats.Add(($"[BELLEK] Önbellekte Tutulan Hedef (RRSet) Kaydı: {val} (Hazır DNS kayıtları)", _cyanBrush));
                                 else if (key == "infra.cache.count") 
-                                    stats.Add(($"[ALTYAPI] Hedef Sunucu Ping Önbelleği (Infra Cache): {val} (En hızlı sunucuyu seçmek için tutulan ping listesi)", cyan));
+                                    stats.Add(($"[ALTYAPI] Hedef Sunucu Ping Önbelleği (Infra Cache): {val} (En hızlı sunucuyu seçmek için tutulan ping listesi)", _cyanBrush));
                                 else if (key == "total.recursion.time.avg") 
-                                    stats.Add(($"[RADAR_PİNG] Hedef Çözümleme Ortalama Süresi: {val} saniye (Dünya üzerindeki kök DNS sunucularına gidiş-dönüş)", emerald));
+                                    stats.Add(($"[RADAR_PİNG] Hedef Çözümleme Ortalama Süresi: {val} saniye (Dünya üzerindeki kök DNS sunucularına gidiş-dönüş)", _emeraldBrush));
                                 else if (key == "num.query.type.A") 
-                                    stats.Add(($"[PROTOKOL_A] A Tipi İstek: {val} (IPv4 Adres çözümleri)", purple));
+                                    stats.Add(($"[PROTOKOL_A] A Tipi İstek: {val} (IPv4 Adres çözümleri)", _purpleBrush));
                                 else if (key == "num.query.type.AAAA") 
-                                    stats.Add(($"[PROTOKOL_AAAA] AAAA Tipi İstek: {val} (Modern IPv6 Adres çözümleri)", purple));
+                                    stats.Add(($"[PROTOKOL_AAAA] AAAA Tipi İstek: {val} (Modern IPv6 Adres çözümleri)", _purpleBrush));
                                 else if (key == "num.query.type.HTTPS") 
-                                    stats.Add(($"[PROTOKOL_HTTPS] HTTPS Tipi İstek: {val} (Güvenli, şifrelenmiş bağlantı altyapısı kontrol ediliyor)", purple));
+                                    stats.Add(($"[PROTOKOL_HTTPS] HTTPS Tipi İstek: {val} (Güvenli, şifrelenmiş bağlantı altyapısı kontrol ediliyor)", _purpleBrush));
                                 else if (key.StartsWith("num.query.type.")) 
-                                    stats.Add(($"[PROTOKOL] {key.Replace("num.query.type.", "")} Tipi İstek Miktarı: {val}", cyan));
+                                    stats.Add(($"[PROTOKOL] {key.Replace("num.query.type.", "")} Tipi İstek Miktarı: {val}", _cyanBrush));
                                 else if (key.StartsWith("num.query.class.")) 
-                                    stats.Add(($"[SINIF] DNS Sınıfı {key.Replace("num.query.class.", "")} İstek Sayısı: {val}", cyan));
+                                    stats.Add(($"[SINIF] DNS Sınıfı {key.Replace("num.query.class.", "")} İstek Sayısı: {val}", _cyanBrush));
                                 else if (key == "num.query.tcp") 
-                                    stats.Add(($"[AĞ_TCP] Güvenli TCP Protokolü İstekleri: {val} (Büyük ve sağlam veri paketleri transferi)", emerald));
+                                    stats.Add(($"[AĞ_TCP] Güvenli TCP Protokolü İstekleri: {val} (Büyük ve sağlam veri paketleri transferi)", _emeraldBrush));
                                 else if (key == "num.query.udp") 
-                                    stats.Add(($"[AĞ_UDP] Hızlı UDP Protokolü İstekleri: {val} (Hızlı ama doğrulamasız paket transferi)", emerald));
+                                    stats.Add(($"[AĞ_UDP] Hızlı UDP Protokolü İstekleri: {val} (Hızlı ama doğrulamasız paket transferi)", _emeraldBrush));
                                 else if (key == "num.query.ipv6") 
-                                    stats.Add(($"[AĞ_IPv6] IPv6 Protokolü İstekleri: {val} (Gelecek nesil IP şifreleme alt yapısı üzerinden veri çekiliyor)", emerald));
+                                    stats.Add(($"[AĞ_IPv6] IPv6 Protokolü İstekleri: {val} (Gelecek nesil IP şifreleme alt yapısı üzerinden veri çekiliyor)", _emeraldBrush));
                                 else if (key.Contains("unwanted.queries")) 
-                                    stats.Add(($"[UYARI_GÜVENLİK] İstenmeyen/Şüpheli Sorgu Miktarı (Bağlantı Kesildi): {val}", orange));
+                                    stats.Add(($"[UYARI_GÜVENLİK] İstenmeyen/Şüpheli Sorgu Miktarı (Bağlantı Kesildi): {val}", _orangeBrush));
                                 else if (key.Contains("recursive.replies")) 
-                                    stats.Add(($"[KÖK_SUNUCU] Başarıyla Çözülen Yanıtlar (Recursion): {val} (Direkt ana kaynak sunuculardan alınan cevaplar)", purple));
+                                    stats.Add(($"[KÖK_SUNUCU] Başarıyla Çözülen Yanıtlar (Recursion): {val} (Direkt ana kaynak sunuculardan alınan cevaplar)", _purpleBrush));
                             }
                         }
                     }
 
                     // Prepend an update warning pulse
-                    _typewriterQueue.Enqueue(("", emerald));
-                    _typewriterQueue.Enqueue(($"[AKTARIM] SSH Telemetri Verileri Güvenle Güncellendi. (Latency: 1ms)", emerald));
+                    _typewriterQueue.Enqueue(("", _emeraldBrush));
+                    _typewriterQueue.Enqueue(($"[AKTARIM] SSH Telemetri Verileri Güvenle Güncellendi. (Latency: 1ms)", _emeraldBrush));
 
                     // Enqueue 2 facts/stats every 2 seconds tick to keep a steady, readable flow
                     // Strict 5:1 Ratio. Every 6th item is an Educational Fact.
-                    int linesToQueue = rand.Next(1, 4);
+                    int linesToQueue = _random.Next(1, 4);
                     for (int i = 0; i < linesToQueue; i++)
                     {
                         _terminalLineCounter++;
                         if (_terminalLineCounter % 6 == 0)
                         {
                             // Enqueue educational internet fact
-                            _typewriterQueue.Enqueue(facts[rand.Next(facts.Length)]);
+                            _typewriterQueue.Enqueue(facts[_random.Next(facts.Length)]);
                         }
                         else
                         {
                             // Enqueue an actual system/network statistic
-                            _typewriterQueue.Enqueue(stats[rand.Next(stats.Count)]);
+                            _typewriterQueue.Enqueue(stats[_random.Next(stats.Count)]);
                         }
                     }
 
@@ -486,7 +457,7 @@ namespace UnboundDashboard.ViewModels
             }
 
             // Type the next character onto the topmost line
-            if (TerminalLogs.Count > 0)
+            if (TerminalLogs.Count > 0 && _currentTypewriterIndex < _currentTypewriterLine.Length)
             {
                 _currentTypewriterIndex++;
                 TerminalLogs[0].Text = _currentTypewriterLine.Substring(0, _currentTypewriterIndex);

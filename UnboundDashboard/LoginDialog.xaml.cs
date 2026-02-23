@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Renci.SshNet;
+using UnboundDashboard.Services;
 
 namespace UnboundDashboard
 {
@@ -27,26 +28,19 @@ namespace UnboundDashboard
         {
             try
             {
-                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-                if (File.Exists(configPath))
-                {
-                    var json = File.ReadAllText(configPath);
-                    TxtHostname.Text = ExtractValue(json, "hostname") ?? "192.168.1.123";
-                    TxtPort.Text = ExtractValue(json, "port") ?? "22";
-                    TxtUsername.Text = ExtractValue(json, "username") ?? "root";
-                    var password = ExtractValue(json, "password");
-                    if (!string.IsNullOrEmpty(password))
-                        TxtPassword.Password = password;
-                }
-                else
-                {
-                    TxtHostname.Text = "192.168.1.123";
-                    TxtPort.Text = "22";
-                    TxtUsername.Text = "root";
-                }
+                var configService = new ConfigurationService();
+                var config = configService.LoadConfig();
+
+                TxtHostname.Text = config.Ssh.Hostname;
+                TxtPort.Text = config.Ssh.Port.ToString();
+                TxtUsername.Text = config.Ssh.Username;
+
+                if (!string.IsNullOrEmpty(config.Ssh.Password))
+                    TxtPassword.Password = config.Ssh.Password;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Failed to load config: {ex.Message}");
                 TxtHostname.Text = "192.168.1.123";
                 TxtPort.Text = "22";
                 TxtUsername.Text = "root";
@@ -144,23 +138,14 @@ namespace UnboundDashboard
         {
             try
             {
-                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-                var json = "{\n" +
-                           "    \"ssh\": {\n" +
-                           $"        \"hostname\": \"{EscapeJson(hostname)}\",\n" +
-                           $"        \"port\": {port},\n" +
-                           $"        \"username\": \"{EscapeJson(username)}\",\n" +
-                           $"        \"password\": \"{EscapeJson(password)}\",\n" +
-                           "        \"keyPath\": null\n" +
-                           "    }\n" +
-                           "}";
-                File.WriteAllText(configPath, json);
+                var configService = new ConfigurationService();
+                configService.SaveSshCredentials(hostname, port, username, password, null);
             }
-            catch { /* Config yazılamazsa sessizce devam et */ }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save config: {ex.Message}");
+            }
         }
-
-        private static string EscapeJson(string s) =>
-            s.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
         private void ShowStatus(string message, string textColor, string bgColor, string borderColor)
         {
@@ -171,28 +156,5 @@ namespace UnboundDashboard
             TxtStatus.Text = message;
         }
 
-        private string? ExtractValue(string json, string key)
-        {
-            var keyPattern = $"\"{key}\"";
-            var idx = json.IndexOf(keyPattern, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0) return null;
-
-            var colonIdx = json.IndexOf(':', idx + keyPattern.Length);
-            if (colonIdx < 0) return null;
-
-            var afterColon = json.Substring(colonIdx + 1).TrimStart();
-            if (afterColon.StartsWith("null", StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            if (afterColon.StartsWith("\""))
-            {
-                var endQuote = afterColon.IndexOf('"', 1);
-                return endQuote > 0 ? afterColon.Substring(1, endQuote - 1) : null;
-            }
-
-            // Numeric value
-            var end = afterColon.IndexOfAny(new[] { ',', '}', '\n', '\r' });
-            return end > 0 ? afterColon.Substring(0, end).Trim() : afterColon.Trim();
-        }
     }
 }

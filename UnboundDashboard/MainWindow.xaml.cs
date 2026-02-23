@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using UnboundDashboard.ViewModels;
+using UnboundDashboard.Services;
 
 namespace UnboundDashboard
 {
@@ -48,41 +49,10 @@ namespace UnboundDashboard
 
         private (string hostname, int port, string username, string? password, string? keyPath) ReadConfig()
         {
-            try
-            {
-                var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-                if (File.Exists(configPath))
-                {
-                    var json = File.ReadAllText(configPath);
-                    var hostname = ExtractValue(json, "hostname") ?? "192.168.1.123";
-                    var portStr = ExtractValue(json, "port");
-                    var port = int.TryParse(portStr, out var p) ? p : 22;
-                    var username = ExtractValue(json, "username") ?? "root";
-                    var password = ExtractValue(json, "password");
-                    var keyPath = ExtractValue(json, "keyPath");
-                    return (hostname, port, username, password, keyPath);
-                }
-            }
-            catch { }
-            return ("192.168.1.123", 22, "root", null, null);
-        }
-
-        private string? ExtractValue(string json, string key)
-        {
-            var keyPattern = $"\"{key}\"";
-            var idx = json.IndexOf(keyPattern, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0) return null;
-            var colonIdx = json.IndexOf(':', idx + keyPattern.Length);
-            if (colonIdx < 0) return null;
-            var afterColon = json.Substring(colonIdx + 1).TrimStart();
-            if (afterColon.StartsWith("null", StringComparison.OrdinalIgnoreCase)) return null;
-            if (afterColon.StartsWith("\""))
-            {
-                var endQuote = afterColon.IndexOf('"', 1);
-                return endQuote > 0 ? afterColon.Substring(1, endQuote - 1) : null;
-            }
-            var end = afterColon.IndexOfAny(new[] { ',', '}', '\n', '\r' });
-            return end > 0 ? afterColon.Substring(0, end).Trim() : afterColon.Trim();
+            var configService = new ConfigurationService();
+            var config = configService.LoadConfig();
+            return (config.Ssh.Hostname, config.Ssh.Port, config.Ssh.Username,
+                    config.Ssh.Password, config.Ssh.KeyPath);
         }
 
 
