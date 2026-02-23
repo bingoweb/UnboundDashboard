@@ -43,6 +43,9 @@ namespace UnboundDashboard.Models
         // Raw Terminal Feed for Matrix UI
         public List<string> RawTerminalLines { get; set; } = new();
 
+        // Real-Time Query Logs (Captured via tcpdump/logs)
+        public List<string> LiveQueries { get; set; } = new();
+
         // Historical Data for Charts
         public System.Collections.ObjectModel.ObservableCollection<double> QpsHistory { get; set; } = new();
         public System.Collections.ObjectModel.ObservableCollection<double> CacheHitHistory { get; set; } = new();

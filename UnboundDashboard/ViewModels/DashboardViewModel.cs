@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using UnboundDashboard.Models;
 using UnboundDashboard.Services;
 
@@ -183,7 +184,7 @@ namespace UnboundDashboard.ViewModels
             // Typewriter Timer (Fast ticking for matrix effect)
             _typewriterTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(90) // Substantially slower: 90ms per character
+                Interval = TimeSpan.FromMilliseconds(20) // Faster: 20ms per character for live data
             };
             _typewriterTimer.Tick += TypewriterTimer_Tick;
 
@@ -361,9 +362,31 @@ namespace UnboundDashboard.ViewModels
                     _typewriterQueue.Enqueue(("", _emeraldBrush));
                     _typewriterQueue.Enqueue(($"[AKTARIM] SSH Telemetri Verileri Güvenle Güncellendi. (Latency: 1ms)", _emeraldBrush));
 
-                    // Enqueue 2 facts/stats every 2 seconds tick to keep a steady, readable flow
+                    // Process Live Real-Time Queries (Priority)
+                    bool hasLiveTraffic = false;
+                    if (newMetrics.LiveQueries != null && newMetrics.LiveQueries.Count > 0)
+                    {
+                        // Regex to parse tcpdump output: "IP 192.168.1.5.1234 > 1.1.1.1.53: 12345+ A? google.com."
+                        var ipv4Regex = new Regex(@"IP\s+(?<src>[\d\.]+)\.(\d+)\s+>\s+.*53:.*?(?<type>[A-Z0-9]+)\?\s+(?<domain>\S+)", RegexOptions.Compiled);
+
+                        foreach (var queryLine in newMetrics.LiveQueries.Take(5)) // Take max 5 to prevent queue flooding
+                        {
+                            var match = ipv4Regex.Match(queryLine);
+                            if (match.Success)
+                            {
+                                hasLiveTraffic = true;
+                                string src = match.Groups["src"].Value;
+                                string type = match.Groups["type"].Value;
+                                string domain = match.Groups["domain"].Value.TrimEnd('.'); // Remove trailing dot
+
+                                _typewriterQueue.Enqueue(($"[CANLI_AKIS] {src} -> {domain} ({type})", _emeraldBrush));
+                            }
+                        }
+                    }
+
+                    // Enqueue random facts ONLY if traffic is low, otherwise show fewer random stats
                     // Strict 5:1 Ratio. Every 6th item is an Educational Fact.
-                    int linesToQueue = _random.Next(1, 4);
+                    int linesToQueue = hasLiveTraffic ? 1 : _random.Next(1, 4);
                     for (int i = 0; i < linesToQueue; i++)
                     {
                         _terminalLineCounter++;
