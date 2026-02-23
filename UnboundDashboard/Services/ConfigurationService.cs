@@ -23,9 +23,9 @@ namespace UnboundDashboard.Services
         private const string ConfigFileName = "appsettings.json";
         private readonly string _configPath;
 
-        public ConfigurationService()
+        public ConfigurationService(string? configPath = null)
         {
-            _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigFileName);
+            _configPath = configPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ConfigFileName);
         }
 
         public AppConfig LoadConfig()
