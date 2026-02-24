@@ -67,13 +67,15 @@
                 </StackPanel>
                 <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top"
                         Background="Transparent" Foreground="#64748b" BorderThickness="0"
-                        FontSize="16" Cursor="Hand" Click="OnCancel" Padding="4"/>
+                        FontSize="16" Cursor="Hand" Click="OnCancel" Padding="4"
+                        AutomationProperties.Name="Kapat"/>
             </Grid>
 
             <!-- Hostname -->
             <TextBlock Grid.Row="1" Text="SUNUCU ADRESİ" FontSize="10" FontWeight="Bold"
                        Foreground="#64748b" Margin="0,0,0,6"/>
             <TextBox Grid.Row="2" x:Name="TxtHostname"
+                     AutomationProperties.Name="Sunucu Adresi"
                      FontSize="14" FontFamily="Consolas"
                      Padding="14,10" Margin="0,0,0,14"
                      Background="#0a1020" Foreground="#f1f5f9"
@@ -98,6 +100,7 @@
                     <TextBlock Text="PORT" FontSize="10" FontWeight="Bold"
                                Foreground="#64748b" Margin="0,0,0,6"/>
                     <TextBox x:Name="TxtPort"
+                             AutomationProperties.Name="Port"
                              FontSize="14" FontFamily="Consolas"
                              Padding="14,10"
                              Background="#0a1020" Foreground="#f1f5f9"
@@ -115,6 +118,7 @@
                     <TextBlock Text="KULLANICI ADI" FontSize="10" FontWeight="Bold"
                                Foreground="#64748b" Margin="0,0,0,6"/>
                     <TextBox x:Name="TxtUsername"
+                             AutomationProperties.Name="Kullanıcı Adı"
                              FontSize="14" FontFamily="Consolas"
                              Padding="14,10"
                              Background="#0a1020" Foreground="#f1f5f9"
@@ -133,6 +137,7 @@
             <TextBlock Grid.Row="4" Text="ŞİFRE" FontSize="10" FontWeight="Bold"
                        Foreground="#64748b" Margin="0,0,0,6"/>
             <PasswordBox Grid.Row="5" x:Name="TxtPassword"
+                         AutomationProperties.Name="Şifre"
                          FontSize="14" FontFamily="Consolas"
                          Padding="14,10" Margin="0,0,0,14"
                          Background="#0a1020" Foreground="#f1f5f9"
@@ -147,6 +152,7 @@
 
             <!-- Remember checkbox -->
             <CheckBox Grid.Row="6" x:Name="ChkRemember"
+                      AutomationProperties.Name="Şifreyi Hatırla"
                       Content="  Şifreyi hatırla (appsettings.json'a kaydet)"
                       IsChecked="True" Foreground="#94a3b8" FontSize="11"
                       Margin="0,0,0,16"/>
