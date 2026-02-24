@@ -250,12 +250,12 @@
                                        Foreground="{StaticResource TextMuted}" FontFamily="Consolas"/>
                         </Border>
 
-                        <Button Style="{StaticResource WindowControlBtn}" Tag="#22d3ee" ToolTip="Küçült" Margin="0,0,6,0" Click="OnMinimize">
+                        <Button Style="{StaticResource WindowControlBtn}" Tag="#22d3ee" ToolTip="Küçült" AutomationProperties.Name="Küçült" Margin="0,0,6,0" Click="OnMinimize">
                             <Path Data="M 6,16 L 14,16" 
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" 
                                   StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                         </Button>
-                        <Button Style="{StaticResource WindowControlBtn}" Tag="#fb7185" ToolTip="Kapat" Click="OnClose">
+                        <Button Style="{StaticResource WindowControlBtn}" Tag="#fb7185" ToolTip="Kapat" AutomationProperties.Name="Kapat" Click="OnClose">
                             <Path Data="M 6,6 L 14,14 M 14,6 L 6,14" 
                                   Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" 
                                   StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
