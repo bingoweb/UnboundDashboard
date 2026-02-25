@@ -183,7 +183,7 @@
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="bd" CornerRadius="10" Padding="{TemplateBinding Padding}"
-                                    BorderBrush="#162d4a" BorderThickness="1">
+                                    BorderBrush="#162d4a" BorderThickness="2">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                         <GradientStop Color="#0c1a2e" Offset="0"/>
@@ -194,6 +194,9 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="#22d3ee"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
                                     <Setter TargetName="bd" Property="BorderBrush" Value="#22d3ee"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
@@ -208,7 +211,8 @@
                         Padding="0,14" Cursor="Hand">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="bd" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                            <Border x:Name="bd" CornerRadius="10" Padding="{TemplateBinding Padding}"
+                                    BorderBrush="Transparent" BorderThickness="2">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                         <GradientStop Color="#059669" Offset="0"/>
@@ -223,6 +227,10 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="bd" Property="Opacity" Value="0.85"/>
+                                    <Setter TargetName="bd" Property="BorderBrush" Value="#ffffff"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

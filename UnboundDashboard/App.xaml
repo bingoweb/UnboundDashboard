@@ -102,7 +102,8 @@
                                     Background="{TemplateBinding Background}"
                                     CornerRadius="10"
                                     Padding="{TemplateBinding Padding}"
-                                    BorderThickness="0">
+                                    BorderThickness="0"
+                                    RenderTransformOrigin="0.5,0.5">
                                 <Border.Effect>
                                     <DropShadowEffect ShadowDepth="0"
                                                       BlurRadius="20"
@@ -118,6 +119,19 @@
                                     <Setter TargetName="border" Property="RenderTransform">
                                         <Setter.Value>
                                             <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="border" Property="Opacity" Value="1.0"/>
+                                    <Setter TargetName="border" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect ShadowDepth="0" BlurRadius="25" Color="#22d3ee" Opacity="0.8"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="border" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
