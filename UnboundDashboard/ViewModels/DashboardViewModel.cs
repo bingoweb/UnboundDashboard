@@ -183,7 +183,7 @@ namespace UnboundDashboard.ViewModels
             // Typewriter Timer (Fast ticking for matrix effect)
             _typewriterTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(90) // Substantially slower: 90ms per character
+                Interval = TimeSpan.FromMilliseconds(120) // Substantially slower: 120ms per character
             };
             _typewriterTimer.Tick += TypewriterTimer_Tick;
 

@@ -671,6 +671,7 @@
                     </Button>
                     <Button Command="{Binding FlushCommand}"
                             Style="{StaticResource PillButton}" Margin="0,0,10,0"
+                            ToolTip="DNS önbelleğini temizler ve istatistikleri sıfırlar"
                             Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource Icon_Trash}" Fill="#f59e0b" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
@@ -679,6 +680,7 @@
                     </Button>
                     <Button Command="{Binding RestartCommand}"
                             Style="{StaticResource PillButton}" Margin="0,0,10,0"
+                            ToolTip="Unbound DNS servisini yeniden başlatır"
                             Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource Icon_Reload}" Stroke="#10b981" StrokeThickness="1.5" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
@@ -687,6 +689,7 @@
                     </Button>
                     <Button Command="{Binding SpeedTestCommand}"
                             Style="{StaticResource PillButton}"
+                            ToolTip="Google DNS sunucusuyla yanıt süresini test eder"
                             Background="#0a120e" BorderBrush="#142e20" BorderThickness="1">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource Icon_Lightning}" Fill="#10b981" Width="14" Height="14" Margin="0,0,6,0" Stretch="Uniform"/>
