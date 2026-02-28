@@ -10,6 +10,70 @@
         TextElement.Foreground="#f1f5f9"
         TextElement.FontFamily="Segoe UI">
 
+    <Window.Resources>
+        <Style x:Key="LoginTextBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Background" Value="#0a1020"/>
+            <Setter Property="Foreground" Value="#f1f5f9"/>
+            <Setter Property="BorderBrush" Value="#1e293b"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="#22d3ee"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="#334155"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="#22d3ee"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LoginPasswordBoxStyle" TargetType="PasswordBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Background" Value="#0a1020"/>
+            <Setter Property="Foreground" Value="#f1f5f9"/>
+            <Setter Property="BorderBrush" Value="#1e293b"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="#22d3ee"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="#334155"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="#22d3ee"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Window.Background>
         <SolidColorBrush Color="Transparent"/>
     </Window.Background>
@@ -132,6 +196,9 @@
                      AutomationProperties.Name="Sunucu Adresi"
                      Margin="0,0,0,14"
                      Style="{StaticResource LoginTextBoxStyle}" />
+                     Style="{StaticResource LoginTextBoxStyle}"
+                     Margin="0,0,0,14">
+            </TextBox>
 
             <!-- Port + Username row -->
             <Grid Grid.Row="3" Margin="0,0,0,14">
@@ -147,6 +214,8 @@
                     <TextBox x:Name="TxtPort"
                              AutomationProperties.Name="Port"
                              Style="{StaticResource LoginTextBoxStyle}" />
+                             Style="{StaticResource LoginTextBoxStyle}">
+                    </TextBox>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">
@@ -155,6 +224,8 @@
                     <TextBox x:Name="TxtUsername"
                              AutomationProperties.Name="Kullanıcı Adı"
                              Style="{StaticResource LoginTextBoxStyle}" />
+                             Style="{StaticResource LoginTextBoxStyle}">
+                    </TextBox>
                 </StackPanel>
             </Grid>
 
@@ -165,6 +236,9 @@
                          AutomationProperties.Name="Şifre"
                          Margin="0,0,0,14"
                          Style="{StaticResource LoginPasswordBoxStyle}" />
+                         Style="{StaticResource LoginPasswordBoxStyle}"
+                         Margin="0,0,0,14">
+            </PasswordBox>
 
             <!-- Remember checkbox -->
             <CheckBox Grid.Row="6" x:Name="ChkRemember"
