@@ -167,9 +167,21 @@ namespace UnboundDashboard.ViewModels
             WarmupCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound sh -c 'for d in google.com youtube.com apple.com facebook.com netflix.com microsoft.com whatsapp.net instagram.com x.com; do dig +short @127.0.0.1 $d >/dev/null; done'"));
             
             // Temizleme: '.' kök zonunu silmek, hiyerarşik olarak tüm internet önbelleğini sıfırlar
-            FlushCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker exec unbound unbound-control flush_zone ."));
+            FlushCommand = new RelayCommand(async () =>
+            {
+                if (MessageBox.Show("DNS önbelleğini temizlemek istediğinize emin misiniz?", "Önbelleği Temizle", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    await ExecuteCommandAsync("docker exec unbound unbound-control flush_zone .");
+                }
+            });
             
-            RestartCommand = new RelayCommand(async () => await ExecuteCommandAsync("docker restart unbound"));
+            RestartCommand = new RelayCommand(async () =>
+            {
+                if (MessageBox.Show("Unbound DNS servisini yeniden başlatmak istediğinize emin misiniz?", "Yeniden Başlat", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    await ExecuteCommandAsync("docker restart unbound");
+                }
+            });
             
             SpeedTestCommand = new RelayCommand(async () => await ExecuteCommandAsync("dig @127.0.0.1 google.com"));
 
